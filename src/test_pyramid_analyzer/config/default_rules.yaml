@@ -1,0 +1,1406 @@
+# ============================================================
+# test-pyramid-analyzer — Default Rule Configuration
+# Version: 2.0
+#
+# Supported languages: Python, Java, JavaScript/TypeScript,
+#   Go, Ruby, C# (.NET), Rust, Kotlin, PHP, C/C++, Groovy, Scala
+#
+# Override any section by passing --config <your-rules.yaml>.
+# Custom rules are deep-merged on top of these defaults, so
+# you only need to specify what you want to change.
+# ============================================================
+
+version: "2.0"
+
+# ────────────────────────────────────────────────────────────
+# 1. Language definitions
+# ────────────────────────────────────────────────────────────
+languages:
+
+  python:
+    extensions: [".py"]
+    test_file_patterns:
+      - "test_*.py"
+      - "*_test.py"
+
+  java:
+    extensions: [".java"]
+    test_file_patterns:
+      - "*Test.java"
+      - "*Tests.java"
+      - "*IT.java"
+      - "*ITCase.java"
+      - "*Spec.java"
+
+  javascript:
+    extensions: [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"]
+    test_file_patterns:
+      - "*.test.js"
+      - "*.spec.js"
+      - "*.test.ts"
+      - "*.spec.ts"
+      - "*.test.jsx"
+      - "*.spec.jsx"
+      - "*.test.tsx"
+      - "*.spec.tsx"
+
+  go:
+    extensions: [".go"]
+    test_file_patterns:
+      - "*_test.go"
+
+  ruby:
+    extensions: [".rb"]
+    test_file_patterns:
+      - "*_spec.rb"
+      - "*_test.rb"
+      - "test_*.rb"
+
+  csharp:
+    extensions: [".cs"]
+    test_file_patterns:
+      - "*Tests.cs"
+      - "*Test.cs"
+      - "*Spec.cs"
+      - "*Steps.cs"
+      - "*Fixture.cs"
+      - "*Integration*.cs"
+
+  rust:
+    extensions: [".rs"]
+    test_file_patterns:
+      - "*_test.rs"
+      - "test_*.rs"
+      - "tests.rs"
+
+  kotlin:
+    extensions: [".kt", ".kts"]
+    test_file_patterns:
+      - "*Test.kt"
+      - "*Tests.kt"
+      - "*Spec.kt"
+      - "*IT.kt"
+      - "*ITCase.kt"
+
+  php:
+    extensions: [".php"]
+    test_file_patterns:
+      - "*Test.php"
+      - "*Tests.php"
+      - "*Spec.php"
+      - "test_*.php"
+      - "*FeatureTest.php"
+      - "*Cest.php"
+
+  cpp:
+    extensions: [".cpp", ".cc", ".cxx", ".c"]
+    test_file_patterns:
+      - "*_test.cpp"
+      - "*_test.cc"
+      - "*_test.cxx"
+      - "test_*.cpp"
+      - "test_*.c"
+      - "*Test.cpp"
+      - "*Spec.cpp"
+      - "*_spec.cpp"
+
+  groovy:
+    extensions: [".groovy"]
+    test_file_patterns:
+      - "*Spec.groovy"
+      - "*Specification.groovy"
+      - "*Test.groovy"
+      - "*Tests.groovy"
+      - "*IT.groovy"
+
+  scala:
+    extensions: [".scala"]
+    test_file_patterns:
+      - "*Spec.scala"
+      - "*Suite.scala"
+      - "*Test.scala"
+      - "*Tests.scala"
+      - "*IT.scala"
+      - "*Specification.scala"
+
+# ────────────────────────────────────────────────────────────
+# 2. Signal definitions
+# ────────────────────────────────────────────────────────────
+signals:
+
+  # ── 2a. Path / directory patterns ──────────────────────────
+  path_patterns:
+
+    unit:
+      - {pattern: "/unit/",              weight: 3.0}
+      - {pattern: "/units/",             weight: 3.0}
+      - {pattern: "/unittest/",          weight: 3.0}
+      - {pattern: "/unit_tests/",        weight: 3.0}
+      - {pattern: "/unittests/",         weight: 3.0}
+
+    integration:
+      - {pattern: "/integration/",       weight: 3.0}
+      - {pattern: "/integrations/",      weight: 3.0}
+      - {pattern: "/integration-test/",  weight: 3.0}
+      - {pattern: "/integration_test/",  weight: 3.0}
+      - {pattern: "/it/",                weight: 2.0}
+      - {pattern: "/api/",               weight: 1.5}
+      - {pattern: "/contract/",          weight: 2.0}
+      - {pattern: "/service/",           weight: 1.5}
+      - {pattern: "/database/",          weight: 2.0}
+      - {pattern: "/db/",                weight: 2.0}
+      - {pattern: "/repository/",        weight: 2.0}
+
+    e2e:
+      - {pattern: "/e2e/",               weight: 3.5}
+      - {pattern: "/end-to-end/",        weight: 3.5}
+      - {pattern: "/end_to_end/",        weight: 3.5}
+      - {pattern: "/acceptance/",        weight: 2.5}
+      - {pattern: "/functional/",        weight: 2.0}
+      - {pattern: "/browser/",           weight: 2.5}
+      - {pattern: "/selenium/",          weight: 3.0}
+      - {pattern: "/playwright/",        weight: 3.0}
+      - {pattern: "/cypress/",           weight: 3.5}
+      - {pattern: "/bdd/",               weight: 2.5}
+      - {pattern: "/features/",          weight: 2.0}
+      - {pattern: "/ui/",                weight: 2.0}
+      - {pattern: "/smoke/",             weight: 2.0}
+      - {pattern: "/regression/",        weight: 2.0}
+      - {pattern: "/system/",            weight: 1.5}
+
+  # ── 2b. Framework detection ─────────────────────────────────
+  frameworks:
+
+    # ════════════════════════════════════════
+    # UNIT frameworks
+    # ════════════════════════════════════════
+    unit:
+
+      # ── Python ──
+      - name: "unittest"
+        languages: ["python"]
+        imports: ["import unittest", "from unittest"]
+        weight: 2.5
+
+      - name: "pytest"
+        languages: ["python"]
+        imports: ["import pytest", "from pytest"]
+        weight: 1.5
+
+      - name: "nose2"
+        languages: ["python"]
+        imports: ["import nose2", "from nose2", "import nose", "from nose"]
+        weight: 2.0
+
+      - name: "hypothesis (property-based)"
+        languages: ["python"]
+        imports: ["from hypothesis", "import hypothesis"]
+        weight: 2.0
+
+      - name: "doctest"
+        languages: ["python"]
+        imports: ["import doctest", "doctest.testmod"]
+        weight: 1.5
+
+      # ── Java ──
+      - name: "JUnit 5"
+        languages: ["java"]
+        imports:
+          - "import org.junit.jupiter"
+          - "import org.junit.Test"
+          - "import org.junit.Assert"
+        weight: 2.5
+
+      - name: "JUnit 4"
+        languages: ["java"]
+        imports:
+          - "import junit.framework"
+          - "import org.junit.runner"
+        weight: 2.0
+
+      - name: "TestNG"
+        languages: ["java"]
+        imports:
+          - "import org.testng"
+          - "import org.testng.annotations"
+        weight: 2.5
+
+      - name: "Mockito"
+        languages: ["java"]
+        imports:
+          - "import org.mockito"
+          - "import static org.mockito"
+        patterns:
+          - "@Mock"
+          - "@InjectMocks"
+          - "Mockito\\.when\\("
+          - "verify\\s*\\(\\s*\\w"
+        weight: 2.5
+
+      - name: "EasyMock"
+        languages: ["java"]
+        imports: ["import org.easymock"]
+        weight: 2.0
+
+      - name: "PowerMock"
+        languages: ["java"]
+        imports: ["import org.powermock"]
+        weight: 2.0
+
+      # ── JavaScript / TypeScript ──
+      - name: "jest"
+        languages: ["javascript"]
+        imports: ["from 'jest'", "require('jest')"]
+        patterns:
+          - "describe\\s*\\("
+          - "\\bit\\s*\\("
+          - "\\btest\\s*\\("
+          - "expect\\s*\\("
+        weight: 1.5
+
+      - name: "vitest"
+        languages: ["javascript"]
+        imports: ["from 'vitest'", "from \"vitest\""]
+        weight: 2.0
+
+      - name: "mocha"
+        languages: ["javascript"]
+        imports: ["require('mocha')", "from 'mocha'", "require(\"mocha\")"]
+        weight: 1.5
+
+      - name: "jasmine"
+        languages: ["javascript"]
+        imports: ["jasmine", "from 'jasmine'", "require('jasmine')"]
+        patterns:
+          - "jasmine\\.createSpy"
+          - "spyOn\\s*\\("
+        weight: 2.0
+
+      - name: "qunit"
+        languages: ["javascript"]
+        imports: ["QUnit", "from 'qunit'", "require('qunit')"]
+        patterns:
+          - "QUnit\\.test\\s*\\("
+          - "QUnit\\.module\\s*\\("
+        weight: 2.0
+
+      - name: "ava"
+        languages: ["javascript"]
+        imports: ["from 'ava'", "require('ava')"]
+        weight: 2.0
+
+      - name: "tape"
+        languages: ["javascript"]
+        imports: ["require('tape')", "from 'tape'"]
+        weight: 1.5
+
+      - name: "chai (assertion)"
+        languages: ["javascript"]
+        imports: ["require('chai')", "from 'chai'"]
+        patterns:
+          - "\\.should\\."
+          - "expect\\(\\w"
+        weight: 1.0
+
+      - name: "sinon (spies/stubs)"
+        languages: ["javascript"]
+        imports: ["require('sinon')", "from 'sinon'"]
+        patterns:
+          - "sinon\\.stub\\("
+          - "sinon\\.spy\\("
+          - "sinon\\.mock\\("
+        weight: 1.5
+
+      - name: "karma"
+        languages: ["javascript"]
+        imports: ["karma", "from 'karma'"]
+        patterns:
+          - "karma\\.config"
+        weight: 1.5
+
+      # ── Go ──
+      - name: "go testing (stdlib)"
+        languages: ["go"]
+        imports: ["\"testing\""]
+        patterns:
+          - "func Test\\w+\\(t \\*testing\\.T\\)"
+        weight: 2.0
+
+      - name: "testify (Go)"
+        languages: ["go"]
+        imports:
+          - "\"github.com/stretchr/testify/assert\""
+          - "\"github.com/stretchr/testify/require\""
+          - "testify/suite"
+        weight: 2.5
+
+      - name: "gomock / mockery"
+        languages: ["go"]
+        imports:
+          - "\"github.com/golang/mock/gomock\""
+          - "\"go.uber.org/mock/gomock\""
+          - "\"github.com/vektra/mockery\""
+        weight: 2.5
+
+      - name: "gocheck"
+        languages: ["go"]
+        imports: ["\"gopkg.in/check.v1\""]
+        weight: 2.0
+
+      # ── Ruby ──
+      - name: "rspec"
+        languages: ["ruby"]
+        imports:
+          - "require 'rspec'"
+          - "require \"rspec\""
+          - "RSpec.describe"
+        weight: 2.0
+
+      - name: "minitest"
+        languages: ["ruby"]
+        imports:
+          - "require 'minitest'"
+          - "require \"minitest\""
+          - "Minitest::Test"
+        weight: 2.5
+
+      - name: "test-unit (Ruby)"
+        languages: ["ruby"]
+        imports:
+          - "require 'test/unit'"
+          - "require \"test/unit\""
+        weight: 2.0
+
+      # ── C# ──
+      - name: "xUnit"
+        languages: ["csharp"]
+        imports:
+          - "using Xunit"
+          - "using Xunit;"
+        patterns:
+          - "\\[Fact\\]"
+          - "\\[Theory\\]"
+        weight: 2.5
+
+      - name: "NUnit"
+        languages: ["csharp"]
+        imports:
+          - "using NUnit.Framework"
+        patterns:
+          - "\\[Test\\]"
+          - "\\[TestFixture\\]"
+          - "\\[TestCase"
+        weight: 2.5
+
+      - name: "MSTest"
+        languages: ["csharp"]
+        imports:
+          - "using Microsoft.VisualStudio.TestTools"
+        patterns:
+          - "\\[TestMethod\\]"
+          - "\\[TestClass\\]"
+        weight: 2.5
+
+      - name: "FluentAssertions"
+        languages: ["csharp"]
+        imports:
+          - "using FluentAssertions"
+        weight: 1.0
+
+      # ── Rust ──
+      - name: "rust stdlib test"
+        languages: ["rust"]
+        patterns:
+          - "#\\[test\\]"
+          - "#\\[cfg\\(test\\)\\]"
+        weight: 2.0
+
+      - name: "rstest"
+        languages: ["rust"]
+        imports: ["rstest"]
+        patterns:
+          - "#\\[rstest\\]"
+          - "#\\[fixture\\]"
+        weight: 2.5
+
+      - name: "proptest (Rust property-based)"
+        languages: ["rust"]
+        imports: ["proptest"]
+        patterns:
+          - "proptest!\\s*\\{"
+        weight: 2.0
+
+      # ── Kotlin ──
+      - name: "JUnit (Kotlin)"
+        languages: ["kotlin"]
+        imports:
+          - "import org.junit"
+          - "import kotlin.test"
+        patterns:
+          - "@Test"
+        weight: 2.0
+
+      - name: "Kotest"
+        languages: ["kotlin"]
+        imports:
+          - "import io.kotest"
+        weight: 2.5
+
+      - name: "MockK"
+        languages: ["kotlin"]
+        imports:
+          - "import io.mockk"
+        patterns:
+          - "every\\s*\\{"
+          - "coEvery\\s*\\{"
+          - "mockk<"
+        weight: 2.5
+
+      # ── PHP ──
+      - name: "PHPUnit"
+        languages: ["php"]
+        imports:
+          - "use PHPUnit\\Framework\\TestCase"
+          - "extends TestCase"
+          - "extends PHPUnit"
+        weight: 2.0
+
+      - name: "PHPSpec"
+        languages: ["php"]
+        imports:
+          - "PhpSpec\\ObjectBehavior"
+          - "extends ObjectBehavior"
+        weight: 2.5
+
+      - name: "kahlan"
+        languages: ["php"]
+        patterns:
+          - "describe\\s*\\("
+          - "it\\s*\\("
+          - "expect\\s*\\("
+        weight: 1.5
+
+      # ── C/C++ ──
+      - name: "Google Test"
+        languages: ["cpp"]
+        imports: ["gtest/gtest.h"]
+        patterns:
+          - "TEST\\s*\\("
+          - "TEST_F\\s*\\("
+        weight: 2.5
+
+      - name: "Catch2"
+        languages: ["cpp"]
+        imports: ["catch2/catch", "catch.hpp"]
+        patterns:
+          - "TEST_CASE\\s*\\("
+          - "SECTION\\s*\\("
+        weight: 2.5
+
+      - name: "doctest (C++)"
+        languages: ["cpp"]
+        imports: ["doctest/doctest.h", "doctest.h"]
+        weight: 2.5
+
+      - name: "Boost.Test"
+        languages: ["cpp"]
+        imports: ["boost/test/"]
+        patterns:
+          - "BOOST_AUTO_TEST_CASE\\s*\\("
+          - "BOOST_CHECK"
+        weight: 2.5
+
+      - name: "CppUnit"
+        languages: ["cpp"]
+        imports: ["cppunit/"]
+        weight: 2.0
+
+      # ── Groovy ──
+      - name: "Spock"
+        languages: ["groovy"]
+        imports:
+          - "import spock.lang"
+          - "spock.lang.Specification"
+        patterns:
+          - "extends Specification"
+          - "def ['\"].*['\"]\\s*\\("
+        weight: 2.5
+
+      # ── Scala ──
+      - name: "ScalaTest"
+        languages: ["scala"]
+        imports:
+          - "import org.scalatest"
+        weight: 2.5
+
+      - name: "specs2"
+        languages: ["scala"]
+        imports:
+          - "import org.specs2"
+        weight: 2.5
+
+      - name: "MUnit (Scala)"
+        languages: ["scala"]
+        imports:
+          - "import munit"
+        weight: 2.0
+
+      - name: "ScalaCheck"
+        languages: ["scala"]
+        imports:
+          - "import org.scalacheck"
+        weight: 2.0
+
+    # ════════════════════════════════════════
+    # INTEGRATION frameworks
+    # ════════════════════════════════════════
+    integration:
+
+      # ── Python ──
+      - name: "pytest-django"
+        languages: ["python"]
+        imports: ["pytest_django", "django.test", "from django"]
+        weight: 3.0
+
+      - name: "pytest-flask"
+        languages: ["python"]
+        imports: ["pytest_flask", "flask.testing"]
+        weight: 3.0
+
+      - name: "pytest-fastapi / httpx"
+        languages: ["python"]
+        imports:
+          - "from httpx"
+          - "import httpx"
+          - "AsyncClient"
+          - "TestClient"
+          - "from fastapi.testclient"
+        weight: 3.0
+
+      - name: "testcontainers-python"
+        languages: ["python"]
+        imports: ["testcontainers"]
+        weight: 3.5
+
+      - name: "requests-mock / responses / httpretty"
+        languages: ["python"]
+        imports: ["requests_mock", "responses", "httpretty"]
+        weight: 2.5
+
+      - name: "factory_boy"
+        languages: ["python"]
+        imports: ["factory_boy", "import factory", "from factory"]
+        weight: 1.5
+
+      - name: "tavern (API testing)"
+        languages: ["python"]
+        imports: ["tavern"]
+        weight: 3.0
+
+      - name: "robot framework"
+        languages: ["python"]
+        imports: ["robot.api", "robot.libraries", "from robot"]
+        weight: 2.5
+
+      - name: "behave (BDD)"
+        languages: ["python"]
+        imports: ["behave", "from behave"]
+        weight: 2.5
+
+      - name: "SQLAlchemy test"
+        languages: ["python"]
+        imports: ["sqlalchemy", "from sqlalchemy"]
+        weight: 2.0
+
+      # ── Java ──
+      - name: "Spring Boot Test"
+        languages: ["java"]
+        imports:
+          - "org.springframework.boot.test"
+          - "org.springframework.test"
+        patterns:
+          - "@SpringBootTest"
+          - "@DataJpaTest"
+          - "@WebMvcTest"
+          - "@DataMongoTest"
+          - "@JdbcTest"
+          - "@RestClientTest"
+        weight: 4.0
+
+      - name: "Testcontainers (Java)"
+        languages: ["java"]
+        imports: ["org.testcontainers"]
+        weight: 3.5
+
+      - name: "WireMock (Java)"
+        languages: ["java"]
+        imports:
+          - "com.github.tomakehurst.wiremock"
+          - "org.wiremock"
+        weight: 2.5
+
+      - name: "RestAssured"
+        languages: ["java"]
+        imports:
+          - "io.restassured"
+          - "given().when().then()"
+        patterns:
+          - "given\\s*\\(\\s*\\)\\.when\\s*\\(\\)"
+          - "RestAssured\\.given"
+        weight: 3.5
+
+      - name: "Arquillian"
+        languages: ["java"]
+        imports:
+          - "org.jboss.arquillian"
+        patterns:
+          - "@RunWith\\s*\\(\\s*Arquillian"
+        weight: 3.0
+
+      - name: "DBUnit"
+        languages: ["java"]
+        imports: ["org.dbunit"]
+        weight: 3.0
+
+      - name: "Spring MVC Test"
+        languages: ["java"]
+        imports:
+          - "org.springframework.test.web.servlet"
+          - "MockMvc"
+        patterns:
+          - "mockMvc\\.perform"
+          - "MockMvcBuilders\\.standaloneSetup"
+        weight: 3.5
+
+      # ── JavaScript / TypeScript ──
+      - name: "supertest"
+        languages: ["javascript"]
+        imports: ["supertest", "require('supertest')"]
+        weight: 3.0
+
+      - name: "MSW (Mock Service Worker)"
+        languages: ["javascript"]
+        imports: ["msw", "from 'msw'"]
+        weight: 2.5
+
+      - name: "nock"
+        languages: ["javascript"]
+        imports: ["require('nock')", "from 'nock'", "nock("]
+        weight: 2.5
+
+      - name: "axios-mock-adapter"
+        languages: ["javascript"]
+        imports: ["axios-mock-adapter", "from 'axios-mock-adapter'"]
+        weight: 2.5
+
+      - name: "pact-js (contract testing)"
+        languages: ["javascript"]
+        imports: ["@pact-foundation/pact", "pact"]
+        weight: 3.5
+
+      - name: "@testing-library (React/Vue/Angular)"
+        languages: ["javascript"]
+        imports:
+          - "@testing-library/react"
+          - "@testing-library/vue"
+          - "@testing-library/angular"
+          - "@testing-library/dom"
+        weight: 2.5
+
+      # ── Go ──
+      - name: "testcontainers-go"
+        languages: ["go"]
+        imports:
+          - "\"github.com/testcontainers/testcontainers-go\""
+        weight: 4.0
+
+      - name: "dockertest (Go)"
+        languages: ["go"]
+        imports:
+          - "\"github.com/ory/dockertest/v3\""
+          - "\"github.com/ory/dockertest\""
+        weight: 4.0
+
+      - name: "sqlmock (Go)"
+        languages: ["go"]
+        imports:
+          - "\"github.com/DATA-DOG/go-sqlmock\""
+          - "go-sqlmock"
+        weight: 2.5
+
+      - name: "net/http/httptest (Go)"
+        languages: ["go"]
+        imports:
+          - "\"net/http/httptest\""
+        weight: 2.5
+
+      - name: "goconvey"
+        languages: ["go"]
+        imports:
+          - "\"github.com/smartystreets/goconvey/convey\""
+        weight: 2.0
+
+      # ── Ruby ──
+      - name: "rack-test"
+        languages: ["ruby"]
+        imports:
+          - "require 'rack/test'"
+          - "require \"rack/test\""
+          - "Rack::Test::Methods"
+        weight: 3.0
+
+      - name: "rspec-rails request spec"
+        languages: ["ruby"]
+        imports:
+          - "require 'rails_helper'"
+          - "require \"rails_helper\""
+        weight: 2.0
+
+      - name: "factory_bot (Ruby)"
+        languages: ["ruby"]
+        imports:
+          - "FactoryBot"
+          - "FactoryGirl"
+        weight: 1.5
+
+      - name: "DatabaseCleaner"
+        languages: ["ruby"]
+        imports:
+          - "DatabaseCleaner"
+          - "database_cleaner"
+        weight: 2.0
+
+      - name: "VCR (Ruby HTTP cassettes)"
+        languages: ["ruby"]
+        imports:
+          - "require 'vcr'"
+          - "VCR.use_cassette"
+        weight: 2.5
+
+      # ── C# ──
+      - name: "WebApplicationFactory"
+        languages: ["csharp"]
+        imports:
+          - "using Microsoft.AspNetCore.Mvc.Testing"
+        patterns:
+          - "WebApplicationFactory<"
+          - "IClassFixture<WebApplicationFactory"
+        weight: 4.0
+
+      - name: "Testcontainers.DotNet"
+        languages: ["csharp"]
+        imports:
+          - "using Testcontainers"
+          - "DotNet.Testcontainers"
+        weight: 3.5
+
+      - name: "EF Core InMemory / SQLite test"
+        languages: ["csharp"]
+        patterns:
+          - "UseInMemoryDatabase"
+          - "UseSqlite.*:memory:"
+          - "DbContextOptions"
+        weight: 2.5
+
+      - name: "Pact-Net (contract)"
+        languages: ["csharp"]
+        imports:
+          - "using PactNet"
+        weight: 3.5
+
+      # ── Rust ──
+      - name: "actix-web integration test"
+        languages: ["rust"]
+        imports:
+          - "actix_web::test"
+          - "actix_rt::test"
+        weight: 4.0
+
+      - name: "axum integration test"
+        languages: ["rust"]
+        imports:
+          - "axum_test"
+        weight: 3.5
+
+      - name: "sqlx test (Rust)"
+        languages: ["rust"]
+        patterns:
+          - "#\\[sqlx::test\\]"
+        weight: 4.0
+
+      - name: "wiremock-rs"
+        languages: ["rust"]
+        imports:
+          - "wiremock"
+        weight: 2.5
+
+      # ── Kotlin ──
+      - name: "Spring Boot Test (Kotlin)"
+        languages: ["kotlin"]
+        patterns:
+          - "@SpringBootTest"
+          - "@DataJpaTest"
+          - "@WebMvcTest"
+        weight: 4.0
+
+      - name: "Testcontainers (Kotlin)"
+        languages: ["kotlin"]
+        imports:
+          - "org.testcontainers"
+          - "io.kotest.extensions.testcontainers"
+        weight: 3.5
+
+      - name: "Ktor testApplication"
+        languages: ["kotlin"]
+        imports:
+          - "io.ktor.server.testing"
+        patterns:
+          - "testApplication\\s*\\{"
+        weight: 3.5
+
+      # ── PHP ──
+      - name: "Laravel Feature / HTTP test"
+        languages: ["php"]
+        imports:
+          - "Illuminate\\Foundation\\Testing"
+          - "use RefreshDatabase"
+          - "use DatabaseMigrations"
+        weight: 3.5
+
+      - name: "PHPUnit database"
+        languages: ["php"]
+        imports:
+          - "PHPUnit\\DbUnit"
+          - "extends DatabaseTestCase"
+        weight: 3.0
+
+      # ── C/C++ ──
+      - name: "libcurl HTTP test (C/C++)"
+        languages: ["cpp"]
+        imports:
+          - "curl/curl.h"
+          - "httplib.h"
+        weight: 2.5
+
+      - name: "Database test (C/C++)"
+        languages: ["cpp"]
+        imports:
+          - "libpq-fe.h"
+          - "mysql.h"
+          - "sqlite3.h"
+          - "pqxx/pqxx"
+        weight: 3.0
+
+      # ── Groovy ──
+      - name: "Spock integration"
+        languages: ["groovy"]
+        patterns:
+          - "@SpringBootTest"
+          - "@DataJpaTest"
+          - "@IntegrationTest"
+        weight: 4.0
+
+      - name: "Testcontainers (Groovy/Spock)"
+        languages: ["groovy"]
+        imports:
+          - "org.testcontainers"
+        weight: 3.5
+
+      # ── Scala ──
+      - name: "ScalaTest integration"
+        languages: ["scala"]
+        imports:
+          - "akka.testkit"
+          - "org.scalatest.concurrent"
+        patterns:
+          - "extends IntegrationPatience"
+          - "extends ScalatestRouteTest"
+        weight: 3.5
+
+      - name: "Testcontainers (Scala)"
+        languages: ["scala"]
+        imports:
+          - "com.dimafeng.testcontainers"
+          - "TestcontainersSuite"
+        weight: 3.5
+
+      - name: "Play WS test"
+        languages: ["scala"]
+        imports:
+          - "play.api.test"
+          - "play.api.inject.guice"
+        patterns:
+          - "extends WithApplication"
+          - "extends PlaySpec"
+        weight: 3.0
+
+      - name: "slick test (Scala)"
+        languages: ["scala"]
+        imports:
+          - "slick.jdbc"
+        weight: 2.0
+
+    # ════════════════════════════════════════
+    # E2E frameworks
+    # ════════════════════════════════════════
+    e2e:
+
+      # ── Python ──
+      - name: "selenium (Python)"
+        languages: ["python"]
+        imports:
+          - "from selenium"
+          - "import selenium"
+          - "webdriver"
+          - "selenium.webdriver"
+        weight: 4.5
+
+      - name: "playwright (Python)"
+        languages: ["python"]
+        imports:
+          - "from playwright"
+          - "import playwright"
+          - "sync_playwright"
+          - "async_playwright"
+        weight: 4.5
+
+      - name: "pyppeteer"
+        languages: ["python"]
+        imports:
+          - "pyppeteer"
+          - "import pyppeteer"
+        weight: 4.0
+
+      - name: "helium"
+        languages: ["python"]
+        imports:
+          - "from helium"
+          - "import helium"
+          - "helium.start_chrome"
+          - "helium.start_firefox"
+        weight: 4.5
+
+      - name: "splinter"
+        languages: ["python"]
+        imports:
+          - "splinter"
+          - "from splinter"
+        weight: 4.0
+
+      - name: "robotframework-browser / SeleniumLibrary"
+        languages: ["python"]
+        imports:
+          - "Browser"
+          - "SeleniumLibrary"
+        weight: 4.0
+
+      - name: "locust (load/E2E)"
+        languages: ["python"]
+        imports:
+          - "from locust"
+          - "import locust"
+          - "HttpUser"
+          - "task"
+        weight: 3.5
+
+      # ── Java ──
+      - name: "Selenium (Java)"
+        languages: ["java"]
+        imports:
+          - "org.openqa.selenium"
+          - "io.github.bonigarcia"
+        patterns:
+          - "driver\\.get\\("
+          - "driver\\.findElement\\("
+          - "WebDriver\\s+driver"
+        weight: 4.5
+
+      - name: "Playwright (Java)"
+        languages: ["java"]
+        imports:
+          - "com.microsoft.playwright"
+        weight: 4.5
+
+      - name: "Cucumber-JVM"
+        languages: ["java"]
+        imports:
+          - "io.cucumber"
+          - "cucumber.api"
+          - "org.cucumber"
+        patterns:
+          - "@Given"
+          - "@When"
+          - "@Then"
+        weight: 4.0
+
+      - name: "JBehave"
+        languages: ["java"]
+        imports:
+          - "org.jbehave"
+        patterns:
+          - "@Given"
+          - "@When"
+          - "@Then"
+        weight: 4.0
+
+      - name: "Appium (Java)"
+        languages: ["java"]
+        imports:
+          - "io.appium.java_client"
+          - "org.openqa.selenium.remote.DesiredCapabilities"
+        weight: 4.5
+
+      - name: "Geb (Groovy-based)"
+        languages: ["java"]
+        imports:
+          - "geb.spock"
+          - "geb.Page"
+        weight: 5.0
+
+      - name: "Gatling (Scala load)"
+        languages: ["java", "scala"]
+        imports:
+          - "io.gatling.core"
+        weight: 4.0
+
+      # ── JavaScript / TypeScript ──
+      - name: "cypress"
+        languages: ["javascript"]
+        imports:
+          - "from 'cypress'"
+          - "cypress"
+        patterns:
+          - "cy\\.visit\\("
+          - "cy\\.get\\("
+          - "cy\\.intercept\\("
+        weight: 5.0
+
+      - name: "playwright (JS/TS)"
+        languages: ["javascript"]
+        imports:
+          - "@playwright/test"
+          - "playwright"
+        patterns:
+          - "page\\.goto\\("
+          - "page\\.click\\("
+          - "browser\\.newPage\\("
+        weight: 5.0
+
+      - name: "puppeteer"
+        languages: ["javascript"]
+        imports:
+          - "puppeteer"
+          - "require('puppeteer')"
+          - "puppeteer-core"
+        weight: 4.5
+
+      - name: "nightwatch"
+        languages: ["javascript"]
+        imports:
+          - "nightwatch"
+        patterns:
+          - "browser\\.url\\("
+          - "browser\\.waitForElementVisible"
+        weight: 4.0
+
+      - name: "webdriverio"
+        languages: ["javascript"]
+        imports:
+          - "@wdio/cli"
+          - "webdriverio"
+          - "wdio"
+        patterns:
+          - "browser\\.url\\("
+          - "\\$\\('[^']+'"
+        weight: 4.0
+
+      - name: "testcafe"
+        languages: ["javascript"]
+        imports:
+          - "testcafe"
+        patterns:
+          - "fixture\\s*\\`"
+          - "test\\s*\\(.*Selector"
+          - "Selector\\s*\\("
+        weight: 4.5
+
+      - name: "detox (React Native)"
+        languages: ["javascript"]
+        imports:
+          - "detox"
+          - "from 'detox'"
+        patterns:
+          - "device\\.launchApp\\("
+          - "element\\s*\\(by\\."
+        weight: 5.0
+
+      - name: "appium (JS)"
+        languages: ["javascript"]
+        imports:
+          - "appium"
+          - "wdio-appium-service"
+        weight: 4.5
+
+      - name: "taiko"
+        languages: ["javascript"]
+        imports:
+          - "taiko"
+          - "from 'taiko'"
+        patterns:
+          - "openBrowser\\s*\\("
+          - "goto\\s*\\("
+        weight: 4.5
+
+      # ── Go ──
+      - name: "chromedp (Go)"
+        languages: ["go"]
+        imports:
+          - "\"github.com/chromedp/chromedp\""
+        weight: 4.5
+
+      - name: "rod (Go)"
+        languages: ["go"]
+        imports:
+          - "\"github.com/go-rod/rod\""
+        weight: 4.5
+
+      - name: "playwright-go"
+        languages: ["go"]
+        imports:
+          - "\"github.com/playwright-community/playwright-go\""
+        weight: 4.5
+
+      - name: "agouti (Go)"
+        languages: ["go"]
+        imports:
+          - "\"github.com/sclevine/agouti\""
+        weight: 4.0
+
+      # ── Ruby ──
+      - name: "capybara"
+        languages: ["ruby"]
+        imports:
+          - "require 'capybara'"
+          - "require \"capybara\""
+          - "Capybara"
+        patterns:
+          - "page\\.visit"
+          - "page\\.fill_in"
+          - "page\\.click_button"
+        weight: 4.5
+
+      - name: "selenium-webdriver (Ruby)"
+        languages: ["ruby"]
+        imports:
+          - "require 'selenium-webdriver'"
+          - "Selenium::WebDriver"
+        weight: 4.5
+
+      - name: "watir"
+        languages: ["ruby"]
+        imports:
+          - "require 'watir'"
+          - "Watir::Browser"
+        weight: 4.5
+
+      - name: "cucumber-ruby"
+        languages: ["ruby"]
+        imports:
+          - "require 'cucumber'"
+          - "Cucumber"
+        weight: 4.0
+
+      # ── C# ──
+      - name: "Selenium WebDriver (.NET)"
+        languages: ["csharp"]
+        imports:
+          - "using OpenQA.Selenium"
+        patterns:
+          - "IWebDriver"
+          - "ChromeDriver"
+          - "FirefoxDriver"
+          - "new WebDriverWait"
+        weight: 4.5
+
+      - name: "Playwright (.NET)"
+        languages: ["csharp"]
+        imports:
+          - "using Microsoft.Playwright"
+        weight: 4.5
+
+      - name: "SpecFlow / Reqnroll (BDD)"
+        languages: ["csharp"]
+        imports:
+          - "using TechTalk.SpecFlow"
+          - "using Reqnroll"
+        patterns:
+          - "\\[Binding\\]"
+          - "\\[Given\\]"
+          - "\\[When\\]"
+          - "\\[Then\\]"
+        weight: 4.0
+
+      # ── Rust ──
+      - name: "fantoccini (Rust WebDriver)"
+        languages: ["rust"]
+        imports:
+          - "fantoccini"
+        weight: 4.5
+
+      - name: "thirtyfour (Rust Selenium)"
+        languages: ["rust"]
+        imports:
+          - "thirtyfour"
+        weight: 4.5
+
+      # ── Kotlin ──
+      - name: "Selenium (Kotlin)"
+        languages: ["kotlin"]
+        imports:
+          - "import org.openqa.selenium"
+        weight: 4.5
+
+      - name: "Playwright (Kotlin)"
+        languages: ["kotlin"]
+        imports:
+          - "import com.microsoft.playwright"
+        weight: 4.5
+
+      # ── PHP ──
+      - name: "Behat (BDD)"
+        languages: ["php"]
+        imports:
+          - "Behat\\Behat"
+          - "use Behat"
+        patterns:
+          - "@Given"
+          - "@When"
+          - "@Then"
+        weight: 4.5
+
+      - name: "Laravel Dusk"
+        languages: ["php"]
+        imports:
+          - "Laravel\\Dusk"
+          - "DuskTestCase"
+        patterns:
+          - "browse\\s*\\(function"
+        weight: 5.0
+
+      - name: "Codeception acceptance"
+        languages: ["php"]
+        imports:
+          - "AcceptanceTester"
+          - "extends Cest"
+        weight: 4.5
+
+      # ── Groovy ──
+      - name: "Geb (Groovy browser)"
+        languages: ["groovy"]
+        imports:
+          - "import geb"
+          - "geb.spock.GebSpec"
+          - "geb.spock.GebReportingSpec"
+        patterns:
+          - "extends GebSpec"
+          - "extends GebReportingSpec"
+        weight: 5.0
+
+      # ── Scala ──
+      - name: "Gatling (Scala)"
+        languages: ["scala"]
+        imports:
+          - "import io.gatling"
+        patterns:
+          - "extends Simulation"
+          - "setUp\\s*\\("
+        weight: 4.0
+
+      - name: "ScalaTest Selenium DSL"
+        languages: ["scala"]
+        imports:
+          - "org.scalatest.selenium"
+        weight: 4.5
+
+  # ── 2c. Code patterns ───────────────────────────────────────
+  # Language-agnostic patterns matched against file body.
+  # weight is per match, capped at 3× by the scorer.
+  code_patterns:
+
+    unit:
+      - name: "mock / patch / stub / fake"
+        pattern: "\\b(mock|Mock|patch|stub|Stub|fake|Fake|MagicMock|createMock|MockBean)\\b"
+        weight: 1.2
+
+      - name: "spy / verify call assertions"
+        pattern: "\\b(spy|verify|assert_called|assert_called_with|assert_called_once|EXPECT_CALL|expect\\(\\w.*\\)\\.toHaveBeenCalled)\\b"
+        weight: 1.0
+
+      - name: "assert / assertEquals"
+        pattern: "\\b(assertEquals|assertThat|assertRaises|assert_raises|assertEqual|assertSame|assertNull|assertThrows|ASSERT_EQ|EXPECT_EQ|EXPECT_TRUE)\\b"
+        weight: 0.5
+
+      - name: "in-memory / fake implementation"
+        pattern: "\\b(InMemory|FakeRepository|FakeService|FakeClient|StubRepository|MemoryDb)\\b"
+        weight: 1.5
+
+    integration:
+      - name: "HTTP client call"
+        pattern: "\\b(requests\\.get|requests\\.post|requests\\.put|requests\\.delete|http\\.get|axios\\.get|axios\\.post|fetch\\(|urllib\\.request|HttpClient|RestTemplate|WebClient)\\b"
+        weight: 2.0
+
+      - name: "database connection / ORM"
+        pattern: "\\b(psycopg2|pymongo|pymysql|sqlalchemy|EntityManager|JdbcTemplate|DataSource|mongoclient|redis\\.Redis|db\\.execute|connection\\.query|prisma\\.|mongoose\\.connect)\\b"
+        weight: 2.5
+
+      - name: "message queue / event bus"
+        pattern: "\\b(kafka|rabbitmq|celery|pika|boto3|sns|sqs|pubsub|amqp|nats|pulsar|eventbus)\\b"
+        weight: 2.0
+
+      - name: "test database / Django/Rails test case"
+        pattern: "\\b(LiveServerTestCase|TransactionTestCase|pytest_django|django\\.test|RefreshDatabase|DatabaseMigrations|DatabaseCleaner)\\b"
+        weight: 2.0
+
+      - name: "container / docker"
+        pattern: "\\b(DockerContainer|GenericContainer|testcontainers|docker\\.from_env|StartupCheckStrategy|withExposedPorts)\\b"
+        weight: 3.0
+
+      - name: "gRPC / SOAP client"
+        pattern: "\\b(grpc\\.insecure_channel|ManagedChannelBuilder|stub\\.SayHello|Channel\\.connect|zeep\\.Client)\\b"
+        weight: 2.0
+
+    e2e:
+      - name: "browser navigation"
+        pattern: "\\b(driver\\.get|browser\\.navigate|page\\.goto|page\\.navigate|visit\\s*\\(|openBrowser|start_chrome|start_firefox)\\b"
+        weight: 3.0
+
+      - name: "element interaction"
+        pattern: "\\b(driver\\.findElement|driver\\.find_element|page\\.click|page\\.fill|page\\.type|page\\.screenshot|page\\.waitFor|fill_in|click_button|click_link)\\b"
+        weight: 2.5
+
+      - name: "Cypress commands"
+        pattern: "\\bcy\\.(visit|get|contains|click|type|intercept|wait|fixture|request|url)\\s*\\("
+        weight: 3.5
+
+      - name: "Playwright actions"
+        pattern: "\\b(page|browser|context)\\.(goto|click|fill|screenshot|waitFor|locator|evaluate|route)\\s*\\("
+        weight: 3.5
+
+      - name: "Geb / Capybara DSL"
+        pattern: "\\b(page\\.visit|have_selector|have_content|within\\s*\\(|fill_in|click_button|go\\s+to\\s+Page)\\b"
+        weight: 3.0
+
+      - name: "Mobile automation (Detox/Appium)"
+        pattern: "\\b(device\\.launchApp|element\\s*\\(by\\.|driver\\.startActivity|MobileBy\\.|TouchAction)\\b"
+        weight: 3.5
+
+      - name: "URL / full-stack hint"
+        pattern: "\\b(http://localhost|https://localhost|base_url|BASE_URL|APP_URL|baseURL|root_url)\\b"
+        weight: 1.5
+
+# ────────────────────────────────────────────────────────────
+# 3. Scoring configuration
+# ────────────────────────────────────────────────────────────
+scoring:
+  ambiguity_threshold: 0.15
+  min_confidence: 0.30

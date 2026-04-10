@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test Pyramid Report — {{ report.repo_path }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --unit-color: #22c55e;
+      --intg-color: #f59e0b;
+      --e2e-color:  #ef4444;
+      --ambi-color: #6366f1;
+      --unk-color:  #6b7280;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #2d3f55;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    h1 { font-size: 1.75rem; font-weight: 700; }
+    h2 { font-size: 1.2rem; font-weight: 600; color: var(--accent); margin-bottom: 1rem; }
+    h3 { font-size: 1rem; font-weight: 600; margin-bottom: .5rem; }
+
+    /* ── Layout ── */
+    .header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+      padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
+    }
+    .header-meta { color: var(--text-muted); font-size: .875rem; margin-top: .4rem; }
+    .badge {
+      display: inline-block; padding: .2rem .6rem; border-radius: 9999px;
+      font-size: .75rem; font-weight: 600; letter-spacing: .05em;
+    }
+
+    .grid { display: grid; gap: 1.5rem; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: .75rem; padding: 1.5rem;
+    }
+
+    /* ── Stat cards ── */
+    .stat-value { font-size: 2.5rem; font-weight: 700; line-height: 1; }
+    .stat-label { color: var(--text-muted); font-size: .85rem; margin-top: .3rem; }
+    .stat-unit  { color: var(--unit-color); }
+    .stat-intg  { color: var(--intg-color); }
+    .stat-e2e   { color: var(--e2e-color); }
+    .stat-total { color: var(--accent); }
+
+    /* ── Distribution bars ── */
+    .dist-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; }
+    .dist-label { width: 90px; font-size: .85rem; font-weight: 500; flex-shrink: 0; }
+    .dist-bar-track {
+      flex: 1; height: 20px; background: var(--surface2);
+      border-radius: 4px; overflow: hidden;
+    }
+    .dist-bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+    .dist-pct { width: 48px; text-align: right; font-size: .85rem; color: var(--text-muted); }
+
+    /* ── Anti-patterns ── */
+    .ap-item {
+      display: flex; align-items: flex-start; gap: .75rem;
+      padding: .75rem; border-radius: .5rem; margin-bottom: .5rem;
+      background: var(--surface2);
+    }
+    .ap-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+    .ap-name { font-weight: 600; font-size: .9rem; }
+    .ap-desc { font-size: .8rem; color: var(--text-muted); margin-top: .1rem; }
+    .ap-details { font-size: .75rem; color: var(--accent); margin-top: .2rem; }
+    .detected-error { border-left: 3px solid var(--e2e-color); }
+    .detected-warning { border-left: 3px solid var(--intg-color); }
+    .ok { border-left: 3px solid var(--unit-color); opacity: .65; }
+
+    /* ── Recommendations ── */
+    .rec-item {
+      display: flex; gap: .75rem; padding: .6rem .75rem;
+      background: var(--surface2); border-radius: .5rem; margin-bottom: .5rem;
+      font-size: .875rem;
+    }
+    .rec-num { color: var(--accent); font-weight: 700; flex-shrink: 0; min-width: 1.5rem; }
+
+    /* ── Files table ── */
+    .search-bar {
+      width: 100%; padding: .5rem .75rem; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: .5rem; color: var(--text);
+      font-size: .875rem; margin-bottom: 1rem; outline: none;
+    }
+    .search-bar:focus { border-color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    thead tr { background: var(--surface2); }
+    th {
+      padding: .5rem .75rem; text-align: left; font-weight: 600;
+      color: var(--text-muted); cursor: pointer; user-select: none;
+      white-space: nowrap;
+    }
+    th:hover { color: var(--text); }
+    td { padding: .45rem .75rem; border-bottom: 1px solid var(--border); }
+    tr:hover td { background: var(--surface2); }
+    .type-pill {
+      display: inline-block; padding: .1rem .45rem; border-radius: 9999px;
+      font-size: .7rem; font-weight: 600; letter-spacing: .04em;
+    }
+    .pill-unit        { background: #166534; color: #86efac; }
+    .pill-integration { background: #78350f; color: #fde68a; }
+    .pill-e2e         { background: #7f1d1d; color: #fca5a5; }
+    .pill-ambiguous   { background: #312e81; color: #c7d2fe; }
+    .pill-unknown     { background: #1f2937; color: #9ca3af; }
+
+    /* ── CI Pipeline ── */
+    .ci-step {
+      padding: .6rem .75rem; background: var(--surface2); border-radius: .5rem;
+      margin-bottom: .4rem; display: flex; gap: .75rem; align-items: flex-start;
+      font-size: .82rem;
+    }
+    .ci-hint { flex-shrink: 0; }
+    .ci-cmd  { font-family: monospace; color: var(--text-muted); word-break: break-all; }
+
+    /* ── Charts ── */
+    .chart-wrapper { max-width: 320px; margin: 0 auto; }
+
+    /* ── Footer ── */
+    footer { margin-top: 3rem; color: var(--text-muted); font-size: .75rem; text-align: center; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      body { padding: 1rem; }
+      .header { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────── -->
+<div class="header">
+  <div>
+    <h1>🏗 Test Pyramid Report</h1>
+    <div class="header-meta">
+      <strong>{{ report.repo_path }}</strong> &nbsp;·&nbsp;
+      Scanned {{ report.timestamp[:19].replace("T", " ") }} UTC &nbsp;·&nbsp;
+      {{ report.total_test_files }} test files
+    </div>
+  </div>
+  <div>
+    {% set detected_count = report.anti_patterns | selectattr("detected") | list | length %}
+    {% if detected_count > 0 %}
+      <span class="badge" style="background:#7f1d1d;color:#fca5a5;">
+        ⚠ {{ detected_count }} anti-pattern{{ "s" if detected_count > 1 }}
+      </span>
+    {% else %}
+      <span class="badge" style="background:#166534;color:#86efac;">✓ Healthy Pyramid</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Stat cards ──────────────────────────────────────────────────────── -->
+<div class="grid grid-3" style="margin-bottom:1.5rem;">
+  <div class="card">
+    <div class="stat-value stat-total">{{ report.total_test_files }}</div>
+    <div class="stat-label">Total Test Files</div>
+  </div>
+  <div class="card">
+    <div class="stat-value stat-unit">{{ data.counts.unit }}</div>
+    <div class="stat-label">Unit Tests &nbsp;<span style="color:var(--text-muted)">({{ data.distribution.unit | pct }})</span></div>
+  </div>
+  <div class="card">
+    <div class="stat-value stat-intg">{{ data.counts.integration }}</div>
+    <div class="stat-label">Integration Tests &nbsp;<span style="color:var(--text-muted)">({{ data.distribution.integration | pct }})</span></div>
+  </div>
+  <div class="card">
+    <div class="stat-value stat-e2e">{{ data.counts.e2e }}</div>
+    <div class="stat-label">E2E Tests &nbsp;<span style="color:var(--text-muted)">({{ data.distribution.e2e | pct }})</span></div>
+  </div>
+  <div class="card">
+    <div class="stat-value" style="color:var(--ambi-color)">{{ data.counts.ambiguous }}</div>
+    <div class="stat-label">Ambiguous</div>
+  </div>
+  <div class="card">
+    <div class="stat-value" style="color:var(--unk-color)">{{ data.counts.unknown }}</div>
+    <div class="stat-label">Unknown</div>
+  </div>
+</div>
+
+<!-- ── Distribution + Chart ────────────────────────────────────────────── -->
+<div class="grid grid-2" style="margin-bottom:1.5rem;">
+  <div class="card">
+    <h2>Distribution</h2>
+    {% set type_colors = {"unit": "var(--unit-color)", "integration": "var(--intg-color)", "e2e": "var(--e2e-color)", "ambiguous": "var(--ambi-color)", "unknown": "var(--unk-color)"} %}
+    {% for t in ["unit", "integration", "e2e", "ambiguous", "unknown"] %}
+      {% set pct_val = data.distribution.get(t, 0) %}
+      <div class="dist-row">
+        <span class="dist-label">{{ t.title() }}</span>
+        <div class="dist-bar-track">
+          <div class="dist-bar-fill"
+               style="width:{{ (pct_val * 100)|round(1) }}%;background:{{ type_colors[t] }};"></div>
+        </div>
+        <span class="dist-pct">{{ pct_val | pct }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h2>Pyramid Chart</h2>
+    <div class="chart-wrapper">
+      <canvas id="pyramidChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── Anti-patterns ────────────────────────────────────────────────────── -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2>Anti-Pattern Analysis</h2>
+  {% for ap in report.anti_patterns %}
+    {% if ap.detected %}
+      <div class="ap-item {{ 'detected-error' if ap.severity == 'error' else 'detected-warning' }}">
+        <span class="ap-icon">{{ '🔴' if ap.severity == 'error' else '🟡' }}</span>
+        <div>
+          <div class="ap-name">{{ ap.name }}</div>
+          <div class="ap-desc">{{ ap.description }}</div>
+          {% if ap.details %}<div class="ap-details">{{ ap.details }}</div>{% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div class="ap-item ok">
+        <span class="ap-icon">🟢</span>
+        <div>
+          <div class="ap-name">{{ ap.name }}</div>
+          <div class="ap-desc">{{ ap.description }}</div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<!-- ── Recommendations ──────────────────────────────────────────────────── -->
+{% if report.recommendations %}
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2>Recommendations</h2>
+  {% for rec in report.recommendations %}
+    <div class="rec-item">
+      <span class="rec-num">{{ loop.index }}.</span>
+      <span>{{ rec }}</span>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── CI Pipeline ──────────────────────────────────────────────────────── -->
+{% if data.ci_pipeline and data.ci_pipeline.steps %}
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2>CI Pipeline — {{ data.ci_pipeline.tool.replace("_", " ").title() }}</h2>
+  <div class="header-meta" style="margin-bottom:.75rem">{{ data.ci_pipeline.source_file }}</div>
+  {% for step in data.ci_pipeline.steps %}
+    {% set hint_colors = {"unit": "#22c55e", "integration": "#f59e0b", "e2e": "#ef4444"} %}
+    <div class="ci-step">
+      <span class="ci-hint type-pill pill-{{ step.test_type_hint or 'unknown' }}">
+        {{ step.test_type_hint or "?" }}
+      </span>
+      <div>
+        <div style="font-weight:600;margin-bottom:.15rem;">{{ step.name }}</div>
+        <div class="ci-cmd">{{ step.command.split("\n")[0][:120] }}</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── Per-file breakdown ────────────────────────────────────────────────── -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2>Test File Breakdown</h2>
+  <input type="text" class="search-bar" id="fileSearch" placeholder="Filter by path, language, or classification…"/>
+  <div style="overflow-x:auto;">
+    <table id="filesTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">File ↕</th>
+          <th onclick="sortTable(1)">Lang ↕</th>
+          <th onclick="sortTable(2)">Classification ↕</th>
+          <th onclick="sortTable(3)" style="text-align:right">Confidence ↕</th>
+          <th style="text-align:right">Unit</th>
+          <th style="text-align:right">Intg</th>
+          <th style="text-align:right">E2E</th>
+          <th style="text-align:right">Signals</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tf in data.test_files %}
+        <tr>
+          <td style="font-family:monospace;font-size:.78rem;">{{ tf.path }}</td>
+          <td>{{ tf.language }}</td>
+          <td><span class="type-pill pill-{{ tf.classification }}">{{ tf.classification }}</span></td>
+          <td style="text-align:right">{{ (tf.confidence * 100)|round(1) }}%</td>
+          <td style="text-align:right;color:var(--unit-color)">{{ tf.scores.get("unit", 0)|round(1) }}</td>
+          <td style="text-align:right;color:var(--intg-color)">{{ tf.scores.get("integration", 0)|round(1) }}</td>
+          <td style="text-align:right;color:var(--e2e-color)">{{ tf.scores.get("e2e", 0)|round(1) }}</td>
+          <td style="text-align:right;color:var(--text-muted)">{{ tf.signals|length }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  Generated by <strong>test-pyramid-analyzer</strong> &nbsp;·&nbsp;
+  <a href="https://github.com/test-pyramid-analyzer/test-pyramid-analyzer" target="_blank">GitHub</a>
+</footer>
+
+<!-- ── Chart.js ──────────────────────────────────────────────────────────── -->
+<script>
+  (function () {
+    const data = {
+      labels: ['Unit', 'Integration', 'E2E', 'Ambiguous', 'Unknown'],
+      datasets: [{
+        data: [
+          {{ data.distribution.get("unit", 0)|round(4) }},
+          {{ data.distribution.get("integration", 0)|round(4) }},
+          {{ data.distribution.get("e2e", 0)|round(4) }},
+          {{ data.distribution.get("ambiguous", 0)|round(4) }},
+          {{ data.distribution.get("unknown", 0)|round(4) }}
+        ],
+        backgroundColor: ['#22c55e','#f59e0b','#ef4444','#6366f1','#4b5563'],
+        borderColor: '#0f172a',
+        borderWidth: 2,
+      }]
+    };
+    new Chart(document.getElementById('pyramidChart'), {
+      type: 'doughnut',
+      data,
+      options: {
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#e2e8f0', font: { size: 12 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.label}: ${(ctx.raw * 100).toFixed(1)}%`
+            }
+          }
+        },
+        cutout: '60%',
+      }
+    });
+  })();
+
+  // ── Live search ───────────────────────────────────────────────────────
+  document.getElementById('fileSearch').addEventListener('input', function () {
+    const term = this.value.toLowerCase();
+    document.querySelectorAll('#filesTable tbody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+    });
+  });
+
+  // ── Column sort ───────────────────────────────────────────────────────
+  let _sortDir = {};
+  function sortTable(colIdx) {
+    const table = document.getElementById('filesTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const dir = (_sortDir[colIdx] = !_sortDir[colIdx]);
+    rows.sort((a, b) => {
+      const av = a.cells[colIdx].textContent.trim();
+      const bv = b.cells[colIdx].textContent.trim();
+      const an = parseFloat(av), bn = parseFloat(bv);
+      const cmp = isNaN(an) || isNaN(bn) ? av.localeCompare(bv) : an - bn;
+      return dir ? cmp : -cmp;
+    });
+    rows.forEach(r => tbody.appendChild(r));
+  }
+</script>
+</body>
+</html>

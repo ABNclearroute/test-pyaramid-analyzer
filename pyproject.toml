@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "test-pyramid-analyzer"
+version = "0.1.0"
+description = "Deterministic rule-based test pyramid analyzer for repositories and CI pipelines"
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["testing", "quality", "analysis", "ci", "test-pyramid"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = [
+    "typer[all]>=0.12.0",
+    "pyyaml>=6.0",
+    "rich>=13.0",
+    "jinja2>=3.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[project.scripts]
+test-pyramid-analyzer = "test_pyramid_analyzer.cli:app"
+tpa = "test_pyramid_analyzer.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+test_pyramid_analyzer = ["config/*.yaml", "templates/*.j2"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+norecursedirs = ["fixtures", "*.egg", ".git", ".tox", "dist", "build"]
