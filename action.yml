@@ -1,8 +1,5 @@
 name: 'Test Pyramid Analyzer'
-description: >
-  Scan your repository, classify tests into Unit / Integration / E2E,
-  detect anti-patterns (Ice Cream Cone, Hourglass) and fail CI on violations.
-  Supports 12 languages and 7 CI platforms out of the box.
+description: 'Classify tests into Unit/Integration/E2E, detect anti-patterns, and enforce test quality gates. Supports 12 languages.'
 
 author: 'ABNclearroute'
 
