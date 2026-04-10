@@ -1,0 +1,138 @@
+name: 'Test Pyramid Analyzer'
+description: >
+  Scan your repository, classify tests into Unit / Integration / E2E,
+  detect anti-patterns (Ice Cream Cone, Hourglass) and fail CI on violations.
+  Supports 12 languages and 7 CI platforms out of the box.
+
+author: 'ABNclearroute'
+
+branding:
+  icon: 'activity'
+  color: 'blue'
+
+# ─────────────────────────────────────────────────────────────
+# Inputs
+# ─────────────────────────────────────────────────────────────
+inputs:
+
+  repo-path:
+    description: >
+      Path to the repository root to scan.
+      Relative to the GitHub workspace (GITHUB_WORKSPACE).
+    required: false
+    default: '.'
+
+  config-file:
+    description: >
+      Path to a custom rules YAML file (relative to workspace).
+      Rules are deep-merged on top of the built-in defaults.
+    required: false
+    default: ''
+
+  ci-file:
+    description: >
+      Path to a CI pipeline file to parse (relative to workspace).
+      Auto-detected if omitted. Supports GitHub Actions, GitLab CI,
+      CircleCI, Azure Pipelines, Travis CI, Bitbucket Pipelines,
+      and Jenkins.
+    required: false
+    default: ''
+
+  output-format:
+    description: >
+      Format of the report written to output-file.
+      One of: json | html
+      (Console summary is always printed to the job log.)
+    required: false
+    default: 'json'
+
+  output-file:
+    description: >
+      File path (relative to workspace) where the report is saved.
+      When set, the file is available as a workflow artifact.
+    required: false
+    default: 'test-pyramid-report.json'
+
+  fail-on-anti-patterns:
+    description: >
+      Exit with code 1 if any anti-pattern is detected.
+      Anti-patterns: Ice Cream Cone, Hourglass, Testing Trophy,
+      Insufficient Unit Tests, No Integration Tests.
+    required: false
+    default: 'false'
+
+  min-unit-percentage:
+    description: >
+      Minimum required percentage of unit tests (integer 0–100).
+      The action fails if unit tests fall below this threshold.
+      Set to 0 to disable.
+    required: false
+    default: '0'
+
+  min-integration-percentage:
+    description: >
+      Minimum required percentage of integration tests (integer 0–100).
+      The action fails if integration tests fall below this threshold.
+      Set to 0 to disable.
+    required: false
+    default: '0'
+
+  max-e2e-percentage:
+    description: >
+      Maximum allowed percentage of E2E tests (integer 0–100).
+      The action fails if E2E tests exceed this threshold.
+      Set to 0 to disable (100 = no limit).
+    required: false
+    default: '100'
+
+  debug:
+    description: >
+      Print per-file scoring details in the job log.
+    required: false
+    default: 'false'
+
+# ─────────────────────────────────────────────────────────────
+# Outputs
+# ─────────────────────────────────────────────────────────────
+outputs:
+
+  unit-percentage:
+    description: 'Fraction of test files classified as unit (0.0–1.0).'
+
+  integration-percentage:
+    description: 'Fraction of test files classified as integration (0.0–1.0).'
+
+  e2e-percentage:
+    description: 'Fraction of test files classified as E2E (0.0–1.0).'
+
+  total-test-files:
+    description: 'Total number of test files discovered.'
+
+  anti-patterns-detected:
+    description: >
+      Comma-separated names of detected anti-patterns,
+      or empty string if none.
+
+  report-file:
+    description: 'Absolute path to the written report file.'
+
+  passed:
+    description: '"true" if no threshold or anti-pattern checks failed, "false" otherwise.'
+
+# ─────────────────────────────────────────────────────────────
+# Runtime — Docker container
+# ─────────────────────────────────────────────────────────────
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    TPA_REPO_PATH:              ${{ inputs.repo-path }}
+    TPA_CONFIG_FILE:            ${{ inputs.config-file }}
+    TPA_CI_FILE:                ${{ inputs.ci-file }}
+    TPA_OUTPUT_FORMAT:          ${{ inputs.output-format }}
+    TPA_OUTPUT_FILE:            ${{ inputs.output-file }}
+    TPA_FAIL_ON_ANTI_PATTERNS:  ${{ inputs.fail-on-anti-patterns }}
+    TPA_MIN_UNIT_PCT:           ${{ inputs.min-unit-percentage }}
+    TPA_MIN_INTEGRATION_PCT:    ${{ inputs.min-integration-percentage }}
+    TPA_MAX_E2E_PCT:            ${{ inputs.max-e2e-percentage }}
+    TPA_DEBUG:                  ${{ inputs.debug }}

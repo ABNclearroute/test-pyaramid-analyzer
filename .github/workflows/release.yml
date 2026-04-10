@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Run the full test suite before releasing
+  # ─────────────────────────────────────────────────────────────
+  test:
+    name: Pre-release tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install and test
+        run: |
+          pip install -e ".[dev]"
+          pytest --tb=short -q
+
+  # ─────────────────────────────────────────────────────────────
+  # Create GitHub release + update floating major-version tag
+  # ─────────────────────────────────────────────────────────────
+  release:
+    name: Create release
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need full history for changelog
+
+      - name: Extract version
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          # Major tag, e.g. v1
+          echo "major=v$(echo ${TAG#v} | cut -d. -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog from commits
+        id: changelog
+        run: |
+          # Collect commits since the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [[ -n "$PREV_TAG" ]]; then
+            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" | head -50)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" | head -50)
+          fi
+          echo "commits<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$COMMITS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag     = "${{ steps.version.outputs.tag }}";
+            const version = "${{ steps.version.outputs.version }}";
+            const commits = `${{ steps.changelog.outputs.commits }}`;
+
+            const body = [
+              `## What's Changed in ${tag}`,
+              "",
+              commits || "_No changes recorded._",
+              "",
+              "---",
+              "",
+              "## Usage",
+              "",
+              "```yaml",
+              "- uses: ABNclearroute/test-pyaramid-analyzer@" + tag,
+              "  with:",
+              "    repo-path: '.'",
+              "    fail-on-anti-patterns: 'true'",
+              "    min-unit-percentage: '60'",
+              "```",
+              "",
+              "See the [README](https://github.com/ABNclearroute/test-pyaramid-analyzer#-github-actions) for full documentation.",
+            ].join("\n");
+
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              tag_name: tag,
+              name: `Test Pyramid Analyzer ${tag}`,
+              body: body,
+              draft: false,
+              prerelease: tag.includes("-"),
+            });
+
+      - name: Update floating major-version tag
+        run: |
+          MAJOR="${{ steps.version.outputs.major }}"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git tag -fa "$MAJOR" -m "Update $MAJOR to ${{ steps.version.outputs.tag }}"
+          git push origin "$MAJOR" --force
