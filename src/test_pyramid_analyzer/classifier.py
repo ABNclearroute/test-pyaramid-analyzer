@@ -127,7 +127,7 @@ class TestClassifier:
 
     def _log_debug(self, result: TestFileResult) -> None:
         logger.debug(
-            "[%s] %s → %s (conf=%.2f) | signals=%d | scores=%s",
+            "[%s] %s → %s (conf=%.2f) signals=%d scores=%s",
             result.language,
             result.relative_path,
             result.classification,

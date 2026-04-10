@@ -155,33 +155,10 @@ class ReportGenerator:
                 )
             c.print(ci_table)
 
-        # ── Debug: per-file breakdown ──────────────────────────────────
+        # ── Debug: per-file explain mode ──────────────────────────────
         if debug and report.test_files:
-            c.print()
-            c.print("[bold]Per-file Breakdown (debug)[/bold]")
-            dbg_table = Table(box=box.SIMPLE, show_header=True)
-            dbg_table.add_column("File", max_width=55)
-            dbg_table.add_column("Lang", justify="center", width=5)
-            dbg_table.add_column("Class", width=12)
-            dbg_table.add_column("Conf", justify="right", width=6)
-            dbg_table.add_column("Unit", justify="right", width=5)
-            dbg_table.add_column("Intg", justify="right", width=5)
-            dbg_table.add_column("E2E", justify="right", width=5)
-            dbg_table.add_column("Signals", justify="right", width=7)
-
-            for tf in report.test_files:
-                style = _TYPE_STYLES.get(tf.classification, "white")
-                dbg_table.add_row(
-                    tf.relative_path,
-                    tf.language[:5],
-                    Text(tf.classification, style=style),
-                    f"{tf.confidence:.2f}",
-                    f"{tf.scores.get('unit', 0):.1f}",
-                    f"{tf.scores.get('integration', 0):.1f}",
-                    f"{tf.scores.get('e2e', 0):.1f}",
-                    str(len(tf.signals)),
-                )
-            c.print(dbg_table)
+            from .debug_printer import DebugPrinter
+            DebugPrinter(c).print_report(report)
 
         c.print()
 
