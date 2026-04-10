@@ -17,7 +17,8 @@ RUN pip install --no-cache-dir \
         "typer[all]" \
         pyyaml \
         rich \
-        jinja2
+        jinja2 \
+        requests
 
 # Copy the package source and install it
 COPY src/ src/

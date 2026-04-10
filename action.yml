@@ -88,6 +88,20 @@ inputs:
     required: false
     default: 'false'
 
+  github-token:
+    description: >
+      GitHub token used to post the PR comment.
+      Pass secrets.GITHUB_TOKEN. Required when post-pr-comment is true.
+    required: false
+    default: ''
+
+  post-pr-comment:
+    description: >
+      Post (or update) a structured markdown comment on the Pull Request.
+      Automatically skipped when the event is not a pull_request.
+    required: false
+    default: 'true'
+
 # ─────────────────────────────────────────────────────────────
 # Outputs
 # ─────────────────────────────────────────────────────────────
@@ -133,3 +147,5 @@ runs:
     TPA_MIN_INTEGRATION_PCT:    ${{ inputs.min-integration-percentage }}
     TPA_MAX_E2E_PCT:            ${{ inputs.max-e2e-percentage }}
     TPA_DEBUG:                  ${{ inputs.debug }}
+    TPA_POST_PR_COMMENT:        ${{ inputs.post-pr-comment }}
+    GITHUB_TOKEN:               ${{ inputs.github-token }}

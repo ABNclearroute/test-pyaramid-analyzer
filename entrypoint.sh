@@ -160,6 +160,14 @@ if [[ -n "$OUTPUT_FILE" ]]; then
     echo "::notice file=${OUTPUT_FILE}::Report saved to ${OUTPUT_FILE}"
 fi
 
+# ── PR comment ───────────────────────────────────────────────────────────────
+# Runs after artifact save so failures here never break the pipeline.
+if [[ "${TPA_POST_PR_COMMENT:-true}" == "true" && -n "${GITHUB_TOKEN:-}" ]]; then
+    echo "::group::💬 Posting PR comment"
+    python3 -m test_pyramid_analyzer.pr_commenter /tmp/tpa_report.json || true
+    echo "::endgroup::"
+fi
+
 # ── Threshold & anti-pattern gate checks ─────────────────────────────────────
 PASSED="true"
 
