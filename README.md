@@ -33,7 +33,8 @@ A deterministic, rule-based CLI tool that scans a repository, classifies test fi
 | **Anti-patterns** | Ice Cream Cone, Hourglass, Testing Trophy, missing layers |
 | **Output formats** | Console (Rich), JSON, HTML (interactive Chart.js report) |
 | **Plugin system** | Add new languages by extending `LanguagePlugin` |
-| **Debug mode** | `--debug` prints per-file scores and signal breakdown |
+| **Explain Mode** | `--debug` prints a full per-file signal breakdown — exactly why each file was classified |
+| **PR Comments** | GitHub Action posts (and idempotently updates) a structured markdown comment on every PR |
 
 ---
 
@@ -200,7 +201,7 @@ Scan a repository and classify all discovered test files.
 | `--out-file PATH` | stdout | Write report to a file |
 | `--ci PATH` | auto-detect | CI pipeline file to parse (any supported platform) |
 | `--exclude DIRS` | — | Comma-separated directory names to skip |
-| `--debug` | off | Print per-file scoring details |
+| `--debug` | off | Explain Mode — full per-file signal breakdown, scores, and confidence |
 
 ### `tpa ci <pipeline_file>`
 
@@ -210,6 +211,68 @@ Parse a CI pipeline file and show detected test steps.
 |---|---|---|
 | `--output FORMAT` | `console` | `console` \| `json` |
 | `--out-file PATH` | stdout | Write output to a file |
+
+---
+
+## Explain Mode (`--debug`)
+
+Add `--debug` to any `tpa scan` command to see exactly **why** each file was classified into its category — every signal, its source, the matched text, and its weight contribution.
+
+```bash
+tpa scan /path/to/my-repo --debug
+```
+
+### Output per file
+
+```
+  tests/unit/test_calculator.py  python  ────────────────────────────────────
+  Signals Detected  (4 signals)
+
+ Source      Signal                   Matched              Weight  → Type
+─────────────────────────────────────────────────────────────────────────────
+ code        mock / patch / stub/fake mock  ·  MagicMock     +3.6  unit
+ code        assert / assertEquals    assertEqual  ·  …       +1.5  unit
+ framework   unittest                 import unittest         +2.5  unit
+ path        /unit/                   /unit/                  +3.0  unit
+
+  Score Breakdown  (total: 10.6)
+
+  Unit          ████████████████████████  10.6  ←
+  Integration   ░░░░░░░░░░░░░░░░░░░░░░░░   0.0
+  E2E           ░░░░░░░░░░░░░░░░░░░░░░░░   0.0
+
+  → UNIT  confidence: 100%  ████████████████████
+```
+
+### Ambiguous file
+
+When two types score close together the file is flagged instead of guessing:
+
+```
+  ⚠  Ambiguous Classification
+  Competing types too close — integration: 6.0  vs  unit: 5.5  (gap: 4.0% of total)
+```
+
+### End-of-run summary table
+
+After all files the explain view closes with a compact one-line-per-file summary:
+
+```
+ File                                   Lang    Classification   Conf   Unit   Intg   E2E   Signals
+──────────────────────────────────────────────────────────────────────────────────────────────────
+ tests/e2e/test_login_flow.py           python  e2e              0.97    1.5    0.0  43.0       8
+ tests/integration/test_db_connection.py python integration      0.88    1.5   11.5   0.0       4
+ tests/unit/test_calculator.py          python  unit             1.00   10.6    0.0   0.0       4
+```
+
+### Signal sources explained
+
+| Source | What it detects | Example match |
+|---|---|---|
+| `path` | Directory name in the file path | `/e2e/`, `/unit/`, `/integration/` |
+| `framework` | Import or annotation of a known test framework | `import playwright`, `@SpringBootTest` |
+| `code` | Regex pattern inside the file body | `page.goto(`, `psycopg2`, `mock.patch` |
+| `plugin` | Language-specific heuristic from a plugin | `@pytest.mark.integration`, `*IT.java` suffix |
 
 ---
 
@@ -348,6 +411,10 @@ register_plugin(SwiftPlugin())
 
 ```
 test-pyramid-analyzer/
+├── action.yml               ← GitHub Action metadata (inputs, outputs, branding)
+├── Dockerfile               ← Docker image for the GitHub Action (python:3.11-slim)
+├── entrypoint.sh            ← Action entrypoint: scan → outputs → PR comment → gates
+├── LICENSE                  ← MIT
 ├── src/test_pyramid_analyzer/
 │   ├── cli.py               ← Typer CLI (scan / ci / version)
 │   ├── models.py            ← Data models (Signal, TestFileResult, …)
@@ -360,6 +427,8 @@ test-pyramid-analyzer/
 │   ├── anti_patterns.py     ← Anti-pattern detection & recommendations
 │   ├── ci_parser.py         ← Multi-platform CI pipeline parser
 │   ├── report_generator.py  ← Console / JSON / HTML output
+│   ├── debug_printer.py     ← Explain Mode renderer (--debug)
+│   ├── pr_commenter.py      ← GitHub PR comment poster (idempotent)
 │   ├── config/
 │   │   └── default_rules.yaml    ← 12 languages, 100+ frameworks
 │   ├── templates/
@@ -488,6 +557,13 @@ ruff check src/ tests/
 ---
 
 ## Changelog
+
+### v3.0
+
+- **Explain Mode** (`--debug`): full per-file signal breakdown showing source, matched text, weight, and score bars — plus ambiguity warnings when types are too close
+- **PR Comment** (`pr_commenter.py`): GitHub Action posts a structured markdown comment on every pull request with distribution table, anti-patterns, and recommendations; idempotent — updates the existing comment on re-runs instead of duplicating it
+- **GitHub Action** (`action.yml` + `Dockerfile` + `entrypoint.sh`): run the full analysis directly in any GitHub workflow with quality-gate inputs (`min-unit-percentage`, `max-e2e-percentage`, `fail-on-anti-patterns`) and structured outputs
+- **Release automation** (`.github/workflows/release.yml`): push a semver tag to auto-create a GitHub Release and update the floating `v1` tag
 
 ### v2.0
 
