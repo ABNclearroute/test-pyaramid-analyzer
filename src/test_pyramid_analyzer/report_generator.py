@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 from rich import box
 from rich.console import Console
@@ -12,7 +11,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from .models import AnalysisReport, TestFileResult
+from .models import AnalysisReport
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ class ReportGenerator:
     Supported *output_format* values: ``"console"``, ``"json"``, ``"html"``.
     """
 
-    def __init__(self, console: Optional[Console] = None) -> None:
+    def __init__(self, console: Console | None = None) -> None:
         self._console = console or _CONSOLE
 
     # ------------------------------------------------------------------
@@ -49,7 +48,7 @@ class ReportGenerator:
         self,
         report: AnalysisReport,
         output_format: str,
-        output_file: Optional[Path] = None,
+        output_file: Path | None = None,
         debug: bool = False,
     ) -> None:
         fmt = output_format.lower()
@@ -88,7 +87,10 @@ class ReportGenerator:
             show_footer=True,
         )
         dist_table.add_column("Type", footer="[bold]Total[/bold]")
-        dist_table.add_column("Count", justify="right", footer=f"[bold]{report.total_test_files}[/bold]")
+        dist_table.add_column(
+            "Count", justify="right",
+            footer=f"[bold]{report.total_test_files}[/bold]",
+        )
         dist_table.add_column("Share", justify="right")
         dist_table.add_column("Distribution", width=32)
 
@@ -187,7 +189,7 @@ class ReportGenerator:
     # JSON report
     # ------------------------------------------------------------------
 
-    def _json_report(self, report: AnalysisReport, output_file: Optional[Path]) -> None:
+    def _json_report(self, report: AnalysisReport, output_file: Path | None) -> None:
         payload = json.dumps(report.to_dict(), indent=2, ensure_ascii=False)
         if output_file:
             output_file.write_text(payload, encoding="utf-8")
@@ -199,7 +201,7 @@ class ReportGenerator:
     # HTML report (Jinja2)
     # ------------------------------------------------------------------
 
-    def _html_report(self, report: AnalysisReport, output_file: Optional[Path]) -> None:
+    def _html_report(self, report: AnalysisReport, output_file: Path | None) -> None:
         try:
             from jinja2 import Environment, FileSystemLoader, select_autoescape
         except ImportError:

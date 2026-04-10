@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 class LanguagePlugin(ABC):
@@ -22,17 +22,17 @@ class LanguagePlugin(ABC):
 
     @property
     @abstractmethod
-    def extensions(self) -> List[str]:
+    def extensions(self) -> list[str]:
         """File extensions handled by this plugin (lowercase, with dot)."""
 
     @property
     @abstractmethod
-    def test_file_patterns(self) -> List[str]:
+    def test_file_patterns(self) -> list[str]:
         """Glob patterns for test file names (e.g. 'test_*.py')."""
 
     def extra_signals(
-        self, file_path: Path, content: str, rules: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Return additional raw signal dicts for a file.
 
         Each dict must contain: test_type, source, name, weight, matched_text.

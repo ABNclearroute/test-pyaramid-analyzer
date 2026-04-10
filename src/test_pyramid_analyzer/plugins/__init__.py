@@ -12,8 +12,6 @@ C/C++      · Groovy      · Scala
 """
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from .base import LanguagePlugin
 from .cpp_plugin import CppPlugin
 from .csharp_plugin import CSharpPlugin
@@ -28,7 +26,7 @@ from .ruby_plugin import RubyPlugin
 from .rust_plugin import RustPlugin
 from .scala_plugin import ScalaPlugin
 
-_REGISTRY: Dict[str, LanguagePlugin] = {}
+_REGISTRY: dict[str, LanguagePlugin] = {}
 
 _BUILTIN_PLUGINS = (
     PythonPlugin,
@@ -57,12 +55,12 @@ def register_plugin(plugin: LanguagePlugin) -> None:
     _REGISTRY[plugin.name] = plugin
 
 
-def get_plugin(name: str) -> Optional[LanguagePlugin]:
+def get_plugin(name: str) -> LanguagePlugin | None:
     """Return the registered plugin for *name*, or None."""
     return _REGISTRY.get(name)
 
 
-def all_plugins() -> List[LanguagePlugin]:
+def all_plugins() -> list[LanguagePlugin]:
     return list(_REGISTRY.values())
 
 

@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import yaml
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # Command-type classifier
 # Ordered list of (test_type, regex_pattern) — first match wins.
 # ---------------------------------------------------------------------------
-_COMMAND_HINTS: List[Tuple[str, str]] = [
+_COMMAND_HINTS: list[tuple[str, str]] = [
     # ── E2E ──────────────────────────────────────────────────────────────
     ("e2e", r"cypress\s+(run|open)"),
     ("e2e", r"npx\s+cypress"),
@@ -189,7 +189,7 @@ class CIParser:
         if not config:
             return CIPipelineInfo(source_file=str(path), tool="github_actions")
 
-        steps: List[CIStep] = []
+        steps: list[CIStep] = []
         for _job_name, job in (config.get("jobs") or {}).items():
             if not isinstance(job, dict):
                 continue
@@ -218,7 +218,7 @@ class CIParser:
         if not config:
             return CIPipelineInfo(source_file=str(path), tool="gitlab_ci")
 
-        steps: List[CIStep] = []
+        steps: list[CIStep] = []
         for job_name, job in config.items():
             if job_name.startswith(".") or job_name in _GITLAB_RESERVED:
                 continue
@@ -243,7 +243,7 @@ class CIParser:
         if not config:
             return CIPipelineInfo(source_file=str(path), tool="circleci")
 
-        steps: List[CIStep] = []
+        steps: list[CIStep] = []
         # Handles both config v2 (jobs map) and v2.1 (orbs / commands)
         for job_name, job in (config.get("jobs") or {}).items():
             if not isinstance(job, dict):
@@ -261,7 +261,7 @@ class CIParser:
         return CIPipelineInfo(source_file=str(path), tool="circleci", steps=steps)
 
     @staticmethod
-    def _extract_circleci_step(step: Any, default_name: str) -> Tuple[str, str]:
+    def _extract_circleci_step(step: Any, default_name: str) -> tuple[str, str]:
         if isinstance(step, str):
             return "", default_name
         if not isinstance(step, dict):
@@ -284,7 +284,7 @@ class CIParser:
         if not config:
             return CIPipelineInfo(source_file=str(path), tool="azure_pipelines")
 
-        raw_steps: List[dict] = []
+        raw_steps: list[dict] = []
         # Collect steps from nested stages → jobs → steps, or flat
         if "stages" in config:
             for stage in config.get("stages") or []:
@@ -296,7 +296,7 @@ class CIParser:
         else:
             raw_steps = config.get("steps") or []
 
-        steps: List[CIStep] = []
+        steps: list[CIStep] = []
         for step in raw_steps:
             if not isinstance(step, dict):
                 continue
@@ -324,7 +324,7 @@ class CIParser:
         if not config:
             return CIPipelineInfo(source_file=str(path), tool="travis_ci")
 
-        steps: List[CIStep] = []
+        steps: list[CIStep] = []
         # Travis uses 'script', 'before_script', 'after_success'
         for section in ("before_script", "script", "after_success"):
             for cmd in self._flatten_script(config.get(section)):
@@ -346,7 +346,7 @@ class CIParser:
         if not config:
             return CIPipelineInfo(source_file=str(path), tool="bitbucket_pipelines")
 
-        steps: List[CIStep] = []
+        steps: list[CIStep] = []
         for pipeline_name, pipeline_entries in (config.get("pipelines") or {}).items():
             if not isinstance(pipeline_entries, list):
                 continue
@@ -383,7 +383,7 @@ class CIParser:
             logger.error("Cannot read Jenkinsfile %s: %s", path, exc)
             return CIPipelineInfo(source_file=str(path), tool="jenkins")
 
-        steps: List[CIStep] = []
+        steps: list[CIStep] = []
 
         # Declarative: stage('Name') { steps { sh '...' } }
         stage_pattern = re.compile(
@@ -423,7 +423,7 @@ class CIParser:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _load_yaml(self, path: Path) -> Optional[Dict[str, Any]]:
+    def _load_yaml(self, path: Path) -> dict[str, Any] | None:
         try:
             with path.open(encoding="utf-8") as fh:
                 data = yaml.safe_load(fh)
@@ -433,7 +433,7 @@ class CIParser:
             return None
 
     @staticmethod
-    def _flatten_script(value: Any) -> List[str]:
+    def _flatten_script(value: Any) -> list[str]:
         """Return a flat list of command strings from a scalar, list, or None."""
         if value is None:
             return []
@@ -448,7 +448,7 @@ class CIParser:
         return []
 
     @staticmethod
-    def _classify_command(command: str) -> Optional[str]:
+    def _classify_command(command: str) -> str | None:
         """Return the test type hint for a shell command string, or None."""
         for test_type, pattern in _COMMAND_HINTS:
             if re.search(pattern, command, re.IGNORECASE):

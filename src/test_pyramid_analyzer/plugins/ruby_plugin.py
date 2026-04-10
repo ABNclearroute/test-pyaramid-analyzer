@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .base import LanguagePlugin
 
@@ -16,10 +16,15 @@ class RubyPlugin(LanguagePlugin):
     # RSpec metadata for Rails test types
     _SYSTEM_SPEC = re.compile(r"type:\s*:system|type:\s*:feature|type:\s*:view")
     _REQUEST_SPEC = re.compile(r"type:\s*:request|type:\s*:routing|type:\s*:api")
-    _UNIT_SPEC = re.compile(r"type:\s*:model|type:\s*:helper|type:\s*:mailer|type:\s*:job|type:\s*:service")
+    _UNIT_SPEC = re.compile(
+        r"type:\s*:model|type:\s*:helper|type:\s*:mailer|type:\s*:job|type:\s*:service"
+    )
 
     # Capybara / browser-based
-    _CAPYBARA = re.compile(r"include Capybara|Capybara\.visit|Capybara::RSpecMatchers|page\.visit|have_content|have_selector")
+    _CAPYBARA = re.compile(
+        r"include Capybara|Capybara\.visit|Capybara::RSpecMatchers"
+        r"|page\.visit|have_content|have_selector"
+    )
     _WATIR = re.compile(r"Watir::Browser|require.*watir")
 
     # Rack-level integration
@@ -27,13 +32,19 @@ class RubyPlugin(LanguagePlugin):
     _FACTORY = re.compile(r"FactoryBot\.|factory_bot|FactoryGirl\.")
 
     # Minitest
-    _MINITEST_INTEGRATION = re.compile(r"ActionDispatch::IntegrationTest|ActionController::IntegrationTest")
+    _MINITEST_INTEGRATION = re.compile(
+        r"ActionDispatch::IntegrationTest|ActionController::IntegrationTest"
+    )
 
-    def extra_signals(self, file_path: Path, content: str, rules: Dict[str, Any]) -> List[Dict[str, Any]]:
-        signals: List[Dict[str, Any]] = []
+    def extra_signals(
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
 
         # E2E: browser / system specs
-        if self._CAPYBARA.search(content) or self._WATIR.search(content) or self._SYSTEM_SPEC.search(content):
+        if (self._CAPYBARA.search(content)
+                or self._WATIR.search(content)
+                or self._SYSTEM_SPEC.search(content)):
             signals.append({
                 "test_type": "e2e",
                 "source": "framework",
@@ -43,7 +54,9 @@ class RubyPlugin(LanguagePlugin):
             })
 
         # Integration: request/routing/api specs, rack-test, database fixtures
-        if self._REQUEST_SPEC.search(content) or self._RACK_TEST.search(content) or self._MINITEST_INTEGRATION.search(content):
+        if (self._REQUEST_SPEC.search(content)
+                or self._RACK_TEST.search(content)
+                or self._MINITEST_INTEGRATION.search(content)):
             signals.append({
                 "test_type": "integration",
                 "source": "framework",

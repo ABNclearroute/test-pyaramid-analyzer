@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .base import LanguagePlugin
 
@@ -22,10 +22,14 @@ class KotlinPlugin(LanguagePlugin):
     # Kotest: describes() / should { } / "string" { } DSLs
     _KOTEST_INTEGRATION = re.compile(r"io\.kotest\.extensions\.(spring|testcontainers|ktor)")
     _KOTEST_UNIT = re.compile(r"io\.kotest\.core\.spec|import io\.kotest\.")
-    _MOCKK = re.compile(r"import io\.mockk\.|every\s*\{|coEvery\s*\{|verify\s*\{|mockk<|spyk\(|relaxedMockk")
+    _MOCKK = re.compile(
+        r"import io\.mockk\.|every\s*\{|coEvery\s*\{|verify\s*\{|mockk<|spyk\(|relaxedMockk"
+    )
 
     # Spring / integration
-    _SPRING_BOOT = re.compile(r"@SpringBootTest|@DataJpaTest|@WebMvcTest|@DataMongoTest|@RestClientTest")
+    _SPRING_BOOT = re.compile(
+        r"@SpringBootTest|@DataJpaTest|@WebMvcTest|@DataMongoTest|@RestClientTest"
+    )
     _TESTCONTAINERS = re.compile(r"org\.testcontainers\.|@Testcontainers|@Container")
     _KTOR_TEST = re.compile(r"io\.ktor\.server\.testing\.|testApplication\s*\{|withTestApplication")
 
@@ -36,8 +40,10 @@ class KotlinPlugin(LanguagePlugin):
     # IT suffix naming
     _IT_SUFFIX = re.compile(r"(IT|IntegrationTest)$")
 
-    def extra_signals(self, file_path: Path, content: str, rules: Dict[str, Any]) -> List[Dict[str, Any]]:
-        signals: List[Dict[str, Any]] = []
+    def extra_signals(
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
 
         if self._SELENIUM.search(content) or self._PLAYWRIGHT.search(content):
             signals.append({

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .base import LanguagePlugin
 
@@ -36,8 +36,10 @@ class GroovyPlugin(LanguagePlugin):
     # Testcontainers
     _TESTCONTAINERS = re.compile(r"org\.testcontainers\.|@Testcontainers|@Container")
 
-    def extra_signals(self, file_path: Path, content: str, rules: Dict[str, Any]) -> List[Dict[str, Any]]:
-        signals: List[Dict[str, Any]] = []
+    def extra_signals(
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
 
         if self._GEB.search(content):
             signals.append({

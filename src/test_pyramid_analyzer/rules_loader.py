@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 
@@ -23,14 +23,14 @@ class RulesLoader:
     to override what differs.
     """
 
-    def __init__(self, custom_path: Optional[Path] = None) -> None:
+    def __init__(self, custom_path: Path | None = None) -> None:
         self._custom_path = custom_path
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
-    def load(self) -> Dict[str, Any]:
+    def load(self) -> dict[str, Any]:
         """Return merged rules dictionary ready for use by the pipeline."""
         rules = self._load_file(_DEFAULT_RULES_PATH)
 
@@ -46,7 +46,7 @@ class RulesLoader:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _load_file(path: Path) -> Dict[str, Any]:
+    def _load_file(path: Path) -> dict[str, Any]:
         if not path.exists():
             raise FileNotFoundError(f"Rules file not found: {path}")
         with path.open(encoding="utf-8") as fh:
@@ -67,7 +67,7 @@ class RulesLoader:
         return result
 
     @staticmethod
-    def _validate(rules: Dict[str, Any]) -> None:
+    def _validate(rules: dict[str, Any]) -> None:
         missing = [s for s in _REQUIRED_SECTIONS if s not in rules]
         if missing:
             raise RulesValidationError(

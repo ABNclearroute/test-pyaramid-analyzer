@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .base import LanguagePlugin
 
@@ -16,8 +16,14 @@ class GoPlugin(LanguagePlugin):
 
     # Strong integration signals inside Go test files
     _TESTCONTAINERS = re.compile(r"testcontainers|dockertest|gnomock")
-    _INTEGRATION_FUNC = re.compile(r"func Test\w*(Integration|Database|DB|Postgres|MySQL|Redis|Kafka|Queue|HTTP|API|Service)\w*\(")
-    _DB_IMPORTS = re.compile(r'"database/sql"|"github\.com/jmoiron/sqlx"|"gorm\.io/gorm"|"github\.com/go-redis/redis"')
+    _INTEGRATION_FUNC = re.compile(
+        r"func Test\w*"
+        r"(Integration|Database|DB|Postgres|MySQL|Redis|Kafka|Queue|HTTP|API|Service)"
+        r"\w*\("
+    )
+    _DB_IMPORTS = re.compile(
+        r'"database/sql"|"github\.com/jmoiron/sqlx"|"gorm\.io/gorm"|"github\.com/go-redis/redis"'
+    )
     _HTTP_CLIENT = re.compile(r'"net/http/httptest"|"net/http"')
 
     # E2E signals
@@ -29,10 +35,14 @@ class GoPlugin(LanguagePlugin):
     # Benchmark → not a test classification signal, skip
     _BENCHMARK = re.compile(r"func Benchmark\w+\(b \*testing\.B\)")
 
-    def extra_signals(self, file_path: Path, content: str, rules: Dict[str, Any]) -> List[Dict[str, Any]]:
-        signals: List[Dict[str, Any]] = []
+    def extra_signals(
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
 
-        if self._CHROMEDP.search(content) or self._ROD.search(content) or self._PLAYWRIGHT_GO.search(content):
+        if (self._CHROMEDP.search(content)
+                or self._ROD.search(content)
+                or self._PLAYWRIGHT_GO.search(content)):
             signals.append({
                 "test_type": "e2e",
                 "source": "framework",

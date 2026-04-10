@@ -1,8 +1,6 @@
 """Confidence calculation and ambiguity detection."""
 from __future__ import annotations
 
-from typing import Dict, Tuple
-
 
 class ConfidenceCalculator:
     """Turn raw score vectors into a (classification, confidence, is_ambiguous) triple.
@@ -24,7 +22,7 @@ class ConfidenceCalculator:
         self.ambiguity_threshold = ambiguity_threshold
         self.min_confidence = min_confidence
 
-    def calculate(self, scores: Dict[str, float]) -> Tuple[str, float, bool]:
+    def calculate(self, scores: dict[str, float]) -> tuple[str, float, bool]:
         """Return *(classification, confidence, is_ambiguous)*.
 
         *classification* is one of: ``unit``, ``integration``, ``e2e``,

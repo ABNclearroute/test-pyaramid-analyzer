@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from .confidence import ConfidenceCalculator
 from .models import AnalysisReport, TestFileResult
@@ -41,10 +40,10 @@ class TestClassifier:
     # Public API
     # ------------------------------------------------------------------
 
-    def classify_files(self, repo_path: Path) -> List[TestFileResult]:
+    def classify_files(self, repo_path: Path) -> list[TestFileResult]:
         """Scan *repo_path* and return a classified result for every test file."""
         found = self._scanner.scan(repo_path)
-        results: List[TestFileResult] = []
+        results: list[TestFileResult] = []
         for file_path, language in found:
             result = self._classify_single(file_path, language, repo_path)
             if self._debug:
@@ -56,8 +55,8 @@ class TestClassifier:
         self,
         repo_path: Path,
         ci_pipeline=None,
-        anti_patterns: Optional[list] = None,
-        recommendations: Optional[List[str]] = None,
+        anti_patterns: list | None = None,
+        recommendations: list[str] | None = None,
     ) -> AnalysisReport:
         """Run the full pipeline and return a populated :class:`AnalysisReport`."""
         test_files = self.classify_files(repo_path)
@@ -110,17 +109,17 @@ class TestClassifier:
 
     @staticmethod
     def _aggregate(
-        results: List[TestFileResult],
-    ) -> tuple[Dict[str, float], Dict[str, int]]:
+        results: list[TestFileResult],
+    ) -> tuple[dict[str, float], dict[str, int]]:
         """Compute distribution fractions and raw counts from classified results."""
         from .models import TEST_TYPES
 
-        counts: Dict[str, int] = {t: 0 for t in (*TEST_TYPES, "ambiguous", "unknown")}
+        counts: dict[str, int] = {t: 0 for t in (*TEST_TYPES, "ambiguous", "unknown")}
         for r in results:
             counts[r.classification] = counts.get(r.classification, 0) + 1
 
         total = len(results)
-        distribution: Dict[str, float] = {
+        distribution: dict[str, float] = {
             t: (counts.get(t, 0) / total) if total else 0.0
             for t in counts
         }

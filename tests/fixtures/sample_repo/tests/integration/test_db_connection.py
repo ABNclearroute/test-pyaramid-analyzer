@@ -1,6 +1,6 @@
 """Integration tests for the user repository — requires a real database."""
-import pytest
 import psycopg2
+import pytest
 
 
 class UserRepository:

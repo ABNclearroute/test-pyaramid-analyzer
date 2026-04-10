@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .base import LanguagePlugin
 
@@ -30,8 +30,10 @@ class RustPlugin(LanguagePlugin):
     _FANTOCCINI = re.compile(r"fantoccini::|Client::new")
     _THIRTYFOUR = re.compile(r"thirtyfour::|WebDriver::new")
 
-    def extra_signals(self, file_path: Path, content: str, rules: Dict[str, Any]) -> List[Dict[str, Any]]:
-        signals: List[Dict[str, Any]] = []
+    def extra_signals(
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
 
         if self._FANTOCCINI.search(content) or self._THIRTYFOUR.search(content):
             signals.append({

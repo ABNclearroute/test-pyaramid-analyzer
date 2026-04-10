@@ -1,8 +1,6 @@
 """Anti-pattern detection and recommendation generation."""
 from __future__ import annotations
 
-from typing import Dict, List
-
 from .models import AntiPatternResult
 
 # ---------------------------------------------------------------------------
@@ -27,7 +25,7 @@ class AntiPatternDetector:
     ``{"unit": 0.6, "integration": 0.2, "e2e": 0.1, ...}``.
     """
 
-    def detect(self, distribution: Dict[str, float]) -> List[AntiPatternResult]:
+    def detect(self, distribution: dict[str, float]) -> list[AntiPatternResult]:
         checkers = [
             self._ice_cream_cone,
             self._hourglass,
@@ -42,7 +40,7 @@ class AntiPatternDetector:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _ice_cream_cone(dist: Dict[str, float]) -> AntiPatternResult:
+    def _ice_cream_cone(dist: dict[str, float]) -> AntiPatternResult:
         """E2E tests dominate — the pyramid is inverted."""
         e2e = dist.get("e2e", 0.0)
         unit = dist.get("unit", 0.0)
@@ -59,7 +57,7 @@ class AntiPatternDetector:
         )
 
     @staticmethod
-    def _hourglass(dist: Dict[str, float]) -> AntiPatternResult:
+    def _hourglass(dist: dict[str, float]) -> AntiPatternResult:
         """Narrow integration layer with a heavy E2E layer."""
         integration = dist.get("integration", 0.0)
         e2e = dist.get("e2e", 0.0)
@@ -78,7 +76,7 @@ class AntiPatternDetector:
         )
 
     @staticmethod
-    def _testing_trophy(dist: Dict[str, float]) -> AntiPatternResult:
+    def _testing_trophy(dist: dict[str, float]) -> AntiPatternResult:
         """Very few unit tests, integration tests dominate (Testing Trophy shape)."""
         unit = dist.get("unit", 0.0)
         integration = dist.get("integration", 0.0)
@@ -97,7 +95,7 @@ class AntiPatternDetector:
         )
 
     @staticmethod
-    def _no_unit_tests(dist: Dict[str, float]) -> AntiPatternResult:
+    def _no_unit_tests(dist: dict[str, float]) -> AntiPatternResult:
         unit = dist.get("unit", 0.0)
         detected = unit < 0.20
         return AntiPatternResult(
@@ -109,7 +107,7 @@ class AntiPatternDetector:
         )
 
     @staticmethod
-    def _no_integration_tests(dist: Dict[str, float]) -> AntiPatternResult:
+    def _no_integration_tests(dist: dict[str, float]) -> AntiPatternResult:
         integration = dist.get("integration", 0.0)
         total_tests = sum(v for k, v in dist.items() if k in ("unit", "integration", "e2e"))
         # Only flag if there are enough total tests to form an opinion
@@ -128,12 +126,12 @@ class AntiPatternDetector:
 # ---------------------------------------------------------------------------
 
 def generate_recommendations(
-    distribution: Dict[str, float],
-    anti_patterns: List[AntiPatternResult],
-) -> List[str]:
+    distribution: dict[str, float],
+    anti_patterns: list[AntiPatternResult],
+) -> list[str]:
     """Return an ordered list of actionable recommendations based on the report."""
     detected_names = {ap.name for ap in anti_patterns if ap.detected}
-    recs: List[str] = []
+    recs: list[str] = []
 
     unit = distribution.get("unit", 0.0)
     integration = distribution.get("integration", 0.0)
@@ -161,7 +159,8 @@ def generate_recommendations(
             "Cover pure functions and business logic with fast, isolated unit tests."
         )
 
-    if "Insufficient Unit Tests" in detected_names and "Testing Trophy (over-rotated)" not in detected_names:
+    trophy_detected = "Testing Trophy (over-rotated)" not in detected_names
+    if "Insufficient Unit Tests" in detected_names and trophy_detected:
         recs.append(
             f"Increase unit test coverage ({unit:.1%} → target >{_UNIT_TARGET_MIN:.0%}). "
             "Unit tests are the fastest feedback loop and should dominate the pyramid."

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .models import Signal
 from .plugins import get_plugin
@@ -19,11 +19,11 @@ class SignalExtractor:
     4. **Plugin extras** — language-specific heuristics from ``LanguagePlugin.extra_signals``.
     """
 
-    def __init__(self, rules: Dict[str, Any]) -> None:
+    def __init__(self, rules: dict[str, Any]) -> None:
         self._signals_cfg = rules.get("signals", {})
 
-    def extract(self, file_path: Path, language: str, content: str) -> List[Signal]:
-        signals: List[Signal] = []
+    def extract(self, file_path: Path, language: str, content: str) -> list[Signal]:
+        signals: list[Signal] = []
         signals.extend(self._path_signals(file_path))
         signals.extend(self._framework_signals(content, language))
         signals.extend(self._code_pattern_signals(content))
@@ -34,9 +34,9 @@ class SignalExtractor:
     # Signal sources
     # ------------------------------------------------------------------
 
-    def _path_signals(self, path: Path) -> List[Signal]:
+    def _path_signals(self, path: Path) -> list[Signal]:
         """Match path/directory keywords against the configured path_patterns."""
-        signals: List[Signal] = []
+        signals: list[Signal] = []
         path_str = str(path).replace("\\", "/").lower()
         for test_type, entries in self._signals_cfg.get("path_patterns", {}).items():
             for entry in entries:
@@ -54,9 +54,9 @@ class SignalExtractor:
                     )
         return signals
 
-    def _framework_signals(self, content: str, language: str) -> List[Signal]:
+    def _framework_signals(self, content: str, language: str) -> list[Signal]:
         """Detect testing frameworks by scanning imports and annotations."""
-        signals: List[Signal] = []
+        signals: list[Signal] = []
         for test_type, framework_list in self._signals_cfg.get("frameworks", {}).items():
             for fw in framework_list:
                 applicable_langs = fw.get("languages", [])
@@ -93,9 +93,9 @@ class SignalExtractor:
 
         return signals
 
-    def _code_pattern_signals(self, content: str) -> List[Signal]:
+    def _code_pattern_signals(self, content: str) -> list[Signal]:
         """Match code-level patterns (mocking, HTTP calls, browser commands, etc.)."""
-        signals: List[Signal] = []
+        signals: list[Signal] = []
         for test_type, patterns in self._signals_cfg.get("code_patterns", {}).items():
             for entry in patterns:
                 try:
@@ -116,7 +116,7 @@ class SignalExtractor:
                     )
         return signals
 
-    def _plugin_signals(self, file_path: Path, language: str, content: str) -> List[Signal]:
+    def _plugin_signals(self, file_path: Path, language: str, content: str) -> list[Signal]:
         """Delegate to the registered language plugin for extra heuristics."""
         plugin = get_plugin(language)
         if plugin is None:

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .base import LanguagePlugin
 
@@ -26,9 +26,9 @@ class JavaPlugin(LanguagePlugin):
     _IT_SUFFIX = re.compile(r"(IT|IntegrationTest)$")
 
     def extra_signals(
-        self, file_path: Path, content: str, rules: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
-        signals: List[Dict[str, Any]] = []
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
 
         # Spring Boot slice / integration annotations
         match = self._SPRING_INTEGRATION.search(content)

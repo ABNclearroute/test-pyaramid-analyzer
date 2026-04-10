@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .base import LanguagePlugin
 
@@ -32,9 +32,9 @@ class JavaScriptPlugin(LanguagePlugin):
     _MOCKING_MIDDLEWARE = re.compile(r"nock\(|msw|rest\.(get|post|put|delete)\(")
 
     def extra_signals(
-        self, file_path: Path, content: str, rules: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
-        signals: List[Dict[str, Any]] = []
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
 
         if self._CYPRESS.search(content):
             signals.append(

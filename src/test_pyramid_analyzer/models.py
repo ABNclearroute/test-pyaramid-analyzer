@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
 
 TEST_TYPES = ("unit", "integration", "e2e")
 
@@ -26,14 +25,14 @@ class TestFileResult:
     path: Path
     relative_path: str
     language: str
-    signals: List[Signal] = field(default_factory=list)
-    scores: Dict[str, float] = field(default_factory=dict)
+    signals: list[Signal] = field(default_factory=list)
+    scores: dict[str, float] = field(default_factory=dict)
     classification: str = "unknown"   # unit | integration | e2e | ambiguous | unknown
     confidence: float = 0.0
     is_ambiguous: bool = False
 
     @property
-    def dominant_signals(self) -> List[Signal]:
+    def dominant_signals(self) -> list[Signal]:
         """Return signals that match the final classification."""
         return [s for s in self.signals if s.test_type == self.classification]
 
@@ -44,7 +43,7 @@ class CIStep:
 
     name: str
     command: str
-    test_type_hint: Optional[str] = None
+    test_type_hint: str | None = None
 
 
 @dataclass
@@ -53,7 +52,7 @@ class CIPipelineInfo:
 
     source_file: str
     tool: str                            # "github_actions"
-    steps: List[CIStep] = field(default_factory=list)
+    steps: list[CIStep] = field(default_factory=list)
 
 
 @dataclass
@@ -74,12 +73,12 @@ class AnalysisReport:
     repo_path: str
     timestamp: str
     total_test_files: int
-    test_files: List[TestFileResult]
-    distribution: Dict[str, float]      # fraction per type, e.g. {"unit": 0.6, ...}
-    counts: Dict[str, int]              # raw count per type
-    anti_patterns: List[AntiPatternResult]
-    recommendations: List[str]
-    ci_pipeline: Optional[CIPipelineInfo] = None
+    test_files: list[TestFileResult]
+    distribution: dict[str, float]      # fraction per type, e.g. {"unit": 0.6, ...}
+    counts: dict[str, int]              # raw count per type
+    anti_patterns: list[AntiPatternResult]
+    recommendations: list[str]
+    ci_pipeline: CIPipelineInfo | None = None
 
     def to_dict(self) -> dict:
         """Serialize to a JSON-compatible dictionary."""

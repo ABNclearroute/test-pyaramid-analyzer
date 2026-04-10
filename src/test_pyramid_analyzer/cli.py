@@ -17,15 +17,20 @@ from __future__ import annotations
 
 import logging
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional
 
 import typer
+from rich import box
 from rich.console import Console
+from rich.table import Table
+from rich.text import Text
 
+from . import __version__
 from .anti_patterns import AntiPatternDetector, generate_recommendations
 from .ci_parser import CIParser
 from .classifier import TestClassifier
+from .models import AnalysisReport
 from .report_generator import ReportGenerator
 from .rules_loader import RulesLoader
 
@@ -52,7 +57,7 @@ def _setup_logging(debug: bool) -> None:
     )
 
 
-def _load_rules(config: Optional[Path]) -> dict:
+def _load_rules(config: Path | None) -> dict:
     try:
         return RulesLoader(custom_path=config).load()
     except FileNotFoundError as exc:
@@ -74,20 +79,22 @@ def _output_option() -> typer.Option:
 @app.command()
 def scan(
     repo_path: Path = typer.Argument(..., help="Path to the repository to analyse."),
-    config: Optional[Path] = typer.Option(
+    config: Path | None = typer.Option(
         None, "--config", "-c", help="Path to a custom rules YAML file."
     ),
     output: str = typer.Option(
         "console", "--output", "-o", help="Output format: console | json | html"
     ),
-    out_file: Optional[Path] = typer.Option(
+    out_file: Path | None = typer.Option(
         None, "--out-file", "-f", help="Write report to this file."
     ),
-    ci_file: Optional[Path] = typer.Option(
-        None, "--ci", help="CI pipeline file to include in the report (e.g. .github/workflows/ci.yml)."
+    ci_file: Path | None = typer.Option(
+        None, "--ci",
+        help="CI pipeline file to include in the report (e.g. .github/workflows/ci.yml).",
     ),
-    exclude: Optional[str] = typer.Option(
-        None, "--exclude", help="Comma-separated directory names to skip (e.g. 'vendor,third_party')."
+    exclude: str | None = typer.Option(
+        None, "--exclude",
+        help="Comma-separated directory names to skip (e.g. 'vendor,third_party').",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Print per-file scoring details."),
 ) -> None:
@@ -101,7 +108,7 @@ def scan(
     rules = _load_rules(config)
 
     # Optional extra excludes
-    extra_excludes: List[str] = []
+    extra_excludes: list[str] = []
     if exclude:
         extra_excludes = [d.strip() for d in exclude.split(",") if d.strip()]
 
@@ -131,7 +138,8 @@ def scan(
     except Exception as exc:  # noqa: BLE001
         _console.print(f"[red]Analysis failed:[/red] {exc}")
         if debug:
-            import traceback; traceback.print_exc()
+            import traceback
+            traceback.print_exc()
         raise typer.Exit(1) from exc
 
     # ── Aggregate ─────────────────────────────────────────────────────
@@ -143,9 +151,6 @@ def scan(
     recommendations = generate_recommendations(distribution, anti_patterns)
 
     # ── Assemble report without re-classifying ─────────────────────────
-    from datetime import datetime, timezone
-    from .models import AnalysisReport
-
     report = AnalysisReport(
         repo_path=str(repo_path.resolve()),
         timestamp=datetime.now(tz=timezone.utc).isoformat(),
@@ -177,7 +182,7 @@ def ci(
     output: str = typer.Option(
         "console", "--output", "-o", help="Output format: console | json"
     ),
-    out_file: Optional[Path] = typer.Option(
+    out_file: Path | None = typer.Option(
         None, "--out-file", "-f", help="Write output to this file."
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Verbose output."),
@@ -214,9 +219,6 @@ def ci(
         return
 
     # Console output
-    from rich.table import Table
-    from rich import box
-
     console = Console()
     console.print()
     console.print(f"[bold cyan]CI Pipeline[/bold cyan] — {info.tool.replace('_', ' ').title()}")
@@ -235,7 +237,6 @@ def ci(
     type_styles = {"unit": "green", "integration": "yellow", "e2e": "red"}
     for step in info.steps:
         color = type_styles.get(step.test_type_hint or "", "dim")
-        from rich.text import Text
         table.add_row(
             step.name[:40],
             step.command.split("\n")[0][:60],
@@ -252,7 +253,6 @@ def ci(
 @app.command()
 def version() -> None:
     """Print the installed version."""
-    from . import __version__
     typer.echo(f"test-pyramid-analyzer {__version__}")
 
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .base import LanguagePlugin
 
@@ -40,8 +40,10 @@ class CppPlugin(LanguagePlugin):
     _HTTP_LIB = re.compile(r"#include.*curl/curl\.h|httplib\.h|libcurl|beast/http")
     _DB_LIB = re.compile(r"#include.*libpq-fe\.h|mysql\.h|sqlite3\.h|pqxx/pqxx")
 
-    def extra_signals(self, file_path: Path, content: str, rules: Dict[str, Any]) -> List[Dict[str, Any]]:
-        signals: List[Dict[str, Any]] = []
+    def extra_signals(
+        self, file_path: Path, content: str, rules: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
 
         if self._GTEST_MOCK.search(content):
             signals.append({
